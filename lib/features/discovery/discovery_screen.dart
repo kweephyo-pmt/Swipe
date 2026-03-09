@@ -177,6 +177,9 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                                   user: u,
                                   currentUser: currentUser,
                                   isSuperLiked: superLikedUids.contains(u.uid),
+                                  onLike: _swipeRight,
+                                  onPass: _swipeLeft,
+                                  onSuperLike: _swipeUp,
                                 );
                               },
                               onSwipeEnd: (prev, curr, activity) {

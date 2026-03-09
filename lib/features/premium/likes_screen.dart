@@ -12,6 +12,7 @@ import '../../models/app_user.dart';
 import '../../providers/discovery_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../providers/user_provider.dart';
+import '../discovery/user_detail_screen.dart';
 import '../shared/match_overlay.dart';
 import '../shared/skeleton_widgets.dart';
 
@@ -25,6 +26,7 @@ class LikesScreen extends ConsumerStatefulWidget {
 class _LikesScreenState extends ConsumerState<LikesScreen> {
   AppUser? _matchedUser;
   String? _matchedMatchId;
+  int _selectedTabIndex = 0;
 
   Future<void> _likeBack(AppUser liker) async {
     final currentUser = ref.read(currentUserProvider).valueOrNull;
@@ -88,43 +90,53 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
-    final likesValue = ref.watch(receivedLikesUnmatchedProvider);
     final isPremium = currentUser?.isPremium ?? false;
+    final receivedCount = ref.watch(receivedLikesUnmatchedProvider).valueOrNull?.length ?? 0;
+
+    AsyncValue<List<AppUser>> currentListValue;
+    switch (_selectedTabIndex) {
+      case 1:
+        currentListValue = ref.watch(sentLikesProvider);
+        break;
+      case 2:
+        currentListValue = ref.watch(topPicksProvider);
+        break;
+      case 0:
+      default:
+        currentListValue = ref.watch(receivedLikesUnmatchedProvider);
+        break;
+    }
 
     return Stack(
       children: [
         Scaffold(
           backgroundColor: AppColors.background,
           body: SafeArea(
-            child: likesValue.when(
+            child: currentListValue.when(
               loading: () => const LikesSkeletonLoader(),
               error: (e, _) => Center(
                 child: Text('Error: $e',
                     style: TextStyle(color: AppColors.textSecondary)),
               ),
-              data: (likes) {
+              data: (usersList) {
                 return CustomScrollView(
                   slivers: [
                     // ── Header ──────────────────────────────────────
                     SliverToBoxAdapter(
                       child: _Header(
                         isPremium: isPremium,
-                        count: likes.length,
+                        receivedCount: receivedCount,
+                        selectedIndex: _selectedTabIndex,
+                        onTabChanged: (idx) => setState(() => _selectedTabIndex = idx),
                       ).animate().fadeIn(duration: 200.ms),
                     ),
 
-                    if (likes.isEmpty)
+                    if (usersList.isEmpty)
                       SliverFillRemaining(
-                        child: _EmptyState(isPremium: isPremium),
+                        child: _EmptyState(isPremium: isPremium, tabIndex: _selectedTabIndex),
                       )
                     else ...[
-                      // ── Non-premium upgrade bar ──────────────────
-                      if (!isPremium)
-                        SliverToBoxAdapter(
-                          child: _UpgradeBanner(count: likes.length)
-                              .animate()
-                              .fadeIn(duration: 200.ms),
-                        ),
+                      // Non-premium upgrade banner removed; using floating action button instead
 
                       // ── Grid ────────────────────────────────────
                       SliverPadding(
@@ -139,13 +151,14 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
                           ),
                           delegate: SliverChildBuilderDelegate(
                             (_, i) => _LikeCard(
-                              user: likes[i],
+                              user: usersList[i],
                               isPremium: isPremium,
                               index: i,
-                              onLike: () => _likeBack(likes[i]),
-                              onPass: () => _pass(likes[i]),
+                              onLike: _selectedTabIndex == 1 ? null : () => _likeBack(usersList[i]),
+                              onPass: _selectedTabIndex == 1 ? null : () => _pass(usersList[i]),
+                              showFullDetails: _selectedTabIndex != 0, // only require premium on 'Likes You' 
                             ),
-                            childCount: likes.length,
+                            childCount: usersList.length,
                           ),
                         ),
                       ),
@@ -156,8 +169,29 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
             ),
           ),
         ),
+        
+        // Floating action button correctly positioned above the bottom navbar
+        if (!isPremium && _selectedTabIndex == 0 && receivedCount > 0)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 104, // Height of bottom nav + padding
+            child: Center(
+              child: SizedBox(
+                width: 280,
+                height: 48,
+                child: FloatingActionButton.extended(
+                  onPressed: () => context.push('/premium'),
+                  backgroundColor: const Color(0xFFE2E4E9),
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  label: Text('Upgrade Premium', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ),
+          ),
 
-        // ── Match overlay ────────────────────────────────────────────
+        // ── Match overlay ──────────────────────────────────────────────────
         if (_matchedUser != null && _matchedMatchId != null)
           MatchOverlay(
             matchedUser: _matchedUser!,
@@ -176,102 +210,128 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
 // ── Header ────────────────────────────────────────────────────────────────────
 
 class _Header extends ConsumerWidget {
-  const _Header({required this.isPremium, required this.count});
+  const _Header({
+    required this.isPremium,
+    required this.receivedCount,
+    required this.selectedIndex,
+    required this.onTabChanged,
+  });
+  
   final bool isPremium;
-  final int count;
+  final int receivedCount;
+  final int selectedIndex;
+  final ValueChanged<int> onTabChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Row(
-        children: [
-          // Title
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Text(
+            'Likes',
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 28,
+            ),
+          ),
+        ),
+        // Tabs
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.white12)),
+          ),
+          child: Row(
             children: [
-              Text(
-                'Likes You',
-                style: GoogleFonts.inter(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 28,
-                ),
-              ),
-              if (count > 0)
-                Text(
-                  '$count ${count == 1 ? 'person likes' : 'people like'} you',
-                  style: GoogleFonts.inter(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => onTabChanged(0),
+                  child: Container(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: selectedIndex == 0 ? Colors.white : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$receivedCount Likes',
+                      style: TextStyle(
+                        color: selectedIndex == 0 ? Colors.white : Colors.white54,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ),
+              ),
+              Container(width: 1, height: 20, color: Colors.white24),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => onTabChanged(1),
+                  child: Container(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: selectedIndex == 1 ? Colors.white : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Likes Sent',
+                      style: TextStyle(
+                        color: selectedIndex == 1 ? Colors.white : Colors.white54,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Container(width: 1, height: 20, color: Colors.white24),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => onTabChanged(2),
+                  child: Container(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: selectedIndex == 2 ? Colors.white : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Top Picks',
+                      style: TextStyle(
+                        color: selectedIndex == 2 ? Colors.white : Colors.white54,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
-          const Spacer(),
-
-          // Premium badge or upgrade button
-          if (isPremium)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.workspace_premium_rounded,
-                      color: Colors.black, size: 14),
-                  const SizedBox(width: 4),
-                  Text('GOLD',
-                      style: GoogleFonts.inter(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12)),
-                ],
-              ),
-            )
-          else
-            GestureDetector(
-              onTap: () => context.push('/premium'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFD700).withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.workspace_premium_rounded,
-                        color: Colors.black, size: 14),
-                    const SizedBox(width: 4),
-                    Text('Upgrade',
-                        style: GoogleFonts.inter(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13)),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 }
+
 
 // ── Profile card ──────────────────────────────────────────────────────────────
 
@@ -280,19 +340,23 @@ class _LikeCard extends StatelessWidget {
     required this.user,
     required this.isPremium,
     required this.index,
-    required this.onLike,
-    required this.onPass,
+    this.onLike,
+    this.onPass,
+    this.showFullDetails = false,
   });
   final AppUser user;
   final bool isPremium;
   final int index;
-  final VoidCallback onLike;
-  final VoidCallback onPass;
+  final VoidCallback? onLike;
+  final VoidCallback? onPass;
+  final bool showFullDetails;
 
   @override
   Widget build(BuildContext context) {
+    final canView = isPremium || showFullDetails;
+
     return GestureDetector(
-      onTap: isPremium
+      onTap: canView
           ? () => _openDetail(context)
           : () => context.push('/premium'),
       child: ClipRRect(
@@ -320,7 +384,7 @@ class _LikeCard extends StatelessWidget {
                   ),
 
             // ── Blur for free users ─────────────────────────────
-            if (!isPremium)
+            if (!canView)
               BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: Container(color: Colors.black.withOpacity(0.05)),
@@ -338,94 +402,52 @@ class _LikeCard extends StatelessWidget {
               ),
             ),
 
-            // ── Info ────────────────────────────────────────────
+            // ── Info (bottom) ───────────────────────────────────
             Positioned(
               left: 10,
               right: 10,
               bottom: 10,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (isPremium) ...[
-                    Text(
-                      '${user.name}, ${user.age}',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 5),
-                    // Like / Pass buttons row
-                    Row(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _MiniBtn(
-                          onTap: onPass,
-                          icon: Icons.close_rounded,
-                          color: AppColors.dislike,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                '${user.name}, ${user.age}',
+                                style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        _MiniBtn(
-                          onTap: onLike,
-                          icon: Icons.favorite_rounded,
-                          color: AppColors.primary,
-                        ),
+                        const SizedBox(height: 2),
+                        Text('20 hrs left', style: GoogleFonts.inter(color: Colors.white.withOpacity(0.9), fontSize: 11, fontWeight: FontWeight.w600)),
                       ],
                     ),
-                  ] else ...[
-                    // Gold lock badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.lock_rounded,
-                              color: Colors.black, size: 11),
-                          const SizedBox(width: 3),
-                          Text('Unlock',
-                              style: GoogleFonts.inter(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 11)),
-                        ],
-                      ),
+                  ),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
                     ),
-                  ],
+                    child: const Icon(Icons.star_rounded, color: Color(0xFF00C6FF), size: 18),
+                  ),
                 ],
               ),
             ),
-
-            // ── "Likes you" heart badge (premium only) ──────────
-            if (isPremium)
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.4),
-                        blurRadius: 8,
-                      )
-                    ],
-                  ),
-                  child: const Icon(Icons.favorite_rounded,
-                      color: Colors.white, size: 16),
-                ),
-              ),
           ],
         ),
       )
@@ -435,263 +457,19 @@ class _LikeCard extends StatelessWidget {
   }
 
   void _openDetail(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _ProfileDetailSheet(
-        user: user,
-        onLike: onLike,
-        onPass: onPass,
-      ),
-    );
-  }
-}
-
-class _MiniBtn extends StatelessWidget {
-  const _MiniBtn(
-      {required this.onTap, required this.icon, required this.color});
-  final VoidCallback onTap;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(color: color.withOpacity(0.3), blurRadius: 8)
-          ],
-          border: Border.all(color: color.withOpacity(0.5), width: 1.2),
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => UserDetailScreen(
+          user: user,
+          onLike: onLike,
+          onPass: onPass,
         ),
-        child: Icon(icon, color: color, size: 16),
       ),
     );
   }
 }
 
-// ── Full profile detail sheet (premium tap) ───────────────────────────────────
 
-class _ProfileDetailSheet extends StatefulWidget {
-  const _ProfileDetailSheet({
-    required this.user,
-    required this.onLike,
-    required this.onPass,
-  });
-  final AppUser user;
-  final VoidCallback onLike;
-  final VoidCallback onPass;
-
-  @override
-  State<_ProfileDetailSheet> createState() => _ProfileDetailSheetState();
-}
-
-class _ProfileDetailSheetState extends State<_ProfileDetailSheet> {
-  int _photoIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final user = widget.user;
-    final h = MediaQuery.of(context).size.height * 0.82;
-
-    return Container(
-      height: h,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        children: [
-          // ── Photo ────────────────────────────────────────────
-          Expanded(
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(28)),
-              child: GestureDetector(
-                onTapUp: (d) {
-                  final half = MediaQuery.of(context).size.width / 2;
-                  setState(() {
-                    if (d.globalPosition.dx < half) {
-                      _photoIndex = (_photoIndex - 1)
-                          .clamp(0, user.photoUrls.length - 1);
-                    } else {
-                      _photoIndex = (_photoIndex + 1)
-                          .clamp(0, user.photoUrls.length - 1);
-                    }
-                  });
-                },
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    user.photoUrls.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: user.photoUrls[_photoIndex],
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            color: AppColors.surfaceVariant,
-                            child: const Icon(Icons.person_rounded,
-                                size: 80, color: AppColors.textHint),
-                          ),
-
-                    // Gradient
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.cardGradient,
-                      ),
-                    ),
-
-                    // Photo dots
-                    if (user.photoUrls.length > 1)
-                      Positioned(
-                        bottom: 80,
-                        left: 0,
-                        right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            user.photoUrls.length,
-                            (i) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 220),
-                              margin: const EdgeInsets.symmetric(horizontal: 3),
-                              width: i == _photoIndex ? 18 : 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: i == _photoIndex
-                                    ? AppColors.primary
-                                    : Colors.white38,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    // Name / age
-                    Positioned(
-                      left: 20,
-                      right: 20,
-                      bottom: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(user.name,
-                                  style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w800,
-                                  )),
-                              const SizedBox(width: 8),
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 2),
-                                child: Text('${user.age}',
-                                    style: GoogleFonts.inter(
-                                      color: Colors.white70,
-                                      fontSize: 20,
-                                    )),
-                              ),
-                            ],
-                          ),
-                          if (user.bio.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(user.bio,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(
-                                    color: Colors.white60, fontSize: 13)),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // ── Action row ───────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(40, 16, 40, 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Pass
-                _SheetBtn(
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.onPass();
-                  },
-                  size: 64,
-                  shadowColor: AppColors.dislike,
-                  child: const Icon(Icons.close_rounded,
-                      color: AppColors.dislike, size: 30),
-                ),
-                // Like
-                _SheetBtn(
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.onLike();
-                  },
-                  size: 64,
-                  shadowColor: AppColors.primary,
-                  child: const Icon(Icons.favorite_rounded,
-                      color: AppColors.primary, size: 30),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SheetBtn extends StatelessWidget {
-  const _SheetBtn(
-      {required this.onTap,
-      required this.size,
-      required this.shadowColor,
-      required this.child});
-  final VoidCallback onTap;
-  final double size;
-  final Color shadowColor;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.surfaceVariant, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: shadowColor.withOpacity(0.3),
-              blurRadius: 16,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Center(child: child),
-      ),
-    );
-  }
-}
 
 // ── Upgrade banner ────────────────────────────────────────────────────────────
 
@@ -761,8 +539,9 @@ class _UpgradeBanner extends StatelessWidget {
 // ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.isPremium});
+  const _EmptyState({required this.isPremium, this.tabIndex = 0});
   final bool isPremium;
+  final int tabIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -787,7 +566,7 @@ class _EmptyState extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Text('No likes yet',
+            Text(tabIndex == 0 ? 'No likes yet' : tabIndex == 1 ? 'No sent likes' : 'No top picks today',
                 style: GoogleFonts.inter(
                     color: AppColors.textPrimary,
                     fontSize: 22,
@@ -796,7 +575,11 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 8),
 
             Text(
-              'Keep swiping — your likes\nwill show up here ✨',
+              tabIndex == 0 
+                  ? 'Keep swiping — your likes\nwill show up here ✨' 
+                  : tabIndex == 1 
+                      ? "Users you like will appear here"
+                      : "Check back later for more picks",
               style: GoogleFonts.inter(
                   color: AppColors.textSecondary, fontSize: 14),
               textAlign: TextAlign.center,

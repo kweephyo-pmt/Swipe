@@ -357,14 +357,14 @@ class _BirthdayStepState extends State<_BirthdayStep> {
                   child: _ScrollWheel(
                     items: List.generate(
                       90,
-                      (i) => '${DateTime.now().year - 18 - i}',
+                      (i) => '${DateTime.now().year - 107 + i}',
                     ),
                     initialIndex:
-                        (DateTime.now().year - 18 - _selectedDate.year)
+                        (_selectedDate.year - (DateTime.now().year - 107))
                             .clamp(0, 89),
                     onChanged: (i) => setState(() {
                       _selectedDate = DateTime(
-                          DateTime.now().year - 18 - i,
+                          DateTime.now().year - 107 + i,
                           _selectedDate.month,
                           _selectedDate.day);
                     }),

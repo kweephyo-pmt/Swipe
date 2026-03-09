@@ -14,11 +14,17 @@ class SwipeCard extends StatefulWidget {
     required this.user,
     required this.currentUser,
     this.isSuperLiked = false,
+    this.onLike,
+    this.onPass,
+    this.onSuperLike,
   });
 
   final AppUser user;
   final AppUser? currentUser;
   final bool isSuperLiked;
+  final VoidCallback? onLike;
+  final VoidCallback? onPass;
+  final VoidCallback? onSuperLike;
 
   @override
   State<SwipeCard> createState() => _SwipeCardState();
@@ -190,7 +196,9 @@ class _SwipeCardState extends State<SwipeCard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => UserDetailScreen(user: user),
+                              builder: (context) => UserDetailScreen(
+                                user: user,
+                              ),
                             ),
                           );
                         },

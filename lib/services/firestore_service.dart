@@ -159,6 +159,26 @@ class FirestoreService {
     });
   }
 
+  /// Real-time stream of users who [userId] has liked.
+  Stream<List<AppUser>> sentLikesStream(String userId) {
+    return _db
+        .collection(AppConstants.likesCollection)
+        .doc(userId)
+        .snapshots()
+        .asyncMap((doc) async {
+      if (!doc.exists) return <AppUser>[];
+      final data = doc.data() as Map<String, dynamic>;
+      final likedIds = data.entries
+          .where((e) => e.value == 'like' || e.value == 'superLike')
+          .map((e) => e.key)
+          .where((id) => id != userId)
+          .toList();
+      if (likedIds.isEmpty) return <AppUser>[];
+      final users = await Future.wait(likedIds.map((id) => getUser(id)));
+      return users.whereType<AppUser>().toList();
+    });
+  }
+
   /// Real-time stream of UIDs that SUPER LIKED [userId].
   Stream<Set<String>> receivedSuperLikesStream(String userId) {
     return _db

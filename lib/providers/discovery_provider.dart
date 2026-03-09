@@ -10,11 +10,15 @@ import 'user_provider.dart';
 // ── Core Streams ──────────────────────────────────────────────────────────
 
 final _allUsersStreamProvider = StreamProvider<List<AppUser>>((ref) {
+  final authState = ref.watch(authStateProvider);
+  if (authState.valueOrNull == null) return Stream.value([]);
   return ref.watch(firestoreServiceProvider).usersStream();
 });
 
 final _swipedIdsStreamProvider =
     StreamProvider.family<Set<String>, String>((ref, uid) {
+  final authState = ref.watch(authStateProvider);
+  if (authState.valueOrNull == null) return Stream.value({});
   return ref.watch(firestoreServiceProvider).swipedIdsStream(uid);
 });
 
@@ -176,4 +180,22 @@ final receivedLikesUnmatchedProvider =
       likers.where((u) => !matchedIds.contains(u.uid)).toList();
 
   return AsyncValue.data(filtered);
+});
+
+// ── Likes Sent ────────────────────────────────────────────────────────────
+final sentLikesProvider = StreamProvider<List<AppUser>>((ref) {
+  final authState = ref.watch(authStateProvider);
+  final uid = authState.valueOrNull?.uid;
+  if (uid == null) return Stream.value([]);
+  return ref.watch(firestoreServiceProvider).sentLikesStream(uid);
+});
+
+// ── Top Picks ─────────────────────────────────────────────────────────────
+final topPicksProvider = Provider<AsyncValue<List<AppUser>>>((ref) {
+  final discoveryAsync = ref.watch(filteredDiscoveryProvider);
+  return discoveryAsync.whenData((users) {
+    // Return up to 10 random users (simulated top picks)
+    final list = users.toList()..shuffle(Random());
+    return list.take(10).toList();
+  });
 });
