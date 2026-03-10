@@ -24,6 +24,13 @@ class AppUser {
   final List<String> interests;
   final int superLikesCount;
 
+  // New discovery prefs
+  final int minPhotosPreference;
+  final bool hasBioPreference;
+  final bool showOutsideDistance;
+  final bool showOutsideAge;
+  final bool globalMode;
+
   bool get isPremium {
     if (!hasPremiumFlag) return false;
     if (premiumEndDate == null) return true;
@@ -53,6 +60,11 @@ class AppUser {
     this.height,
     this.interests = const [],
     this.superLikesCount = 5,
+    this.minPhotosPreference = 1,
+    this.hasBioPreference = false,
+    this.showOutsideDistance = true,
+    this.showOutsideAge = false,
+    this.globalMode = false,
   });
 
   int get age {
@@ -94,6 +106,11 @@ class AppUser {
       height: data['height'],
       interests: List<String>.from(data['interests'] ?? []),
       superLikesCount: data['superLikesCount'] ?? 5,
+      minPhotosPreference: data['minPhotosPreference'] ?? 1,
+      hasBioPreference: data['hasBioPreference'] ?? false,
+      showOutsideDistance: data['showOutsideDistance'] ?? true,
+      showOutsideAge: data['showOutsideAge'] ?? false,
+      globalMode: data['globalMode'] ?? false,
     );
   }
 
@@ -121,6 +138,11 @@ class AppUser {
       'height': height,
       'interests': interests,
       'superLikesCount': superLikesCount,
+      'minPhotosPreference': minPhotosPreference,
+      'hasBioPreference': hasBioPreference,
+      'showOutsideDistance': showOutsideDistance,
+      'showOutsideAge': showOutsideAge,
+      'globalMode': globalMode,
     };
   }
 
@@ -145,6 +167,11 @@ class AppUser {
     String? height,
     List<String>? interests,
     int? superLikesCount,
+    int? minPhotosPreference,
+    bool? hasBioPreference,
+    bool? showOutsideDistance,
+    bool? showOutsideAge,
+    bool? globalMode,
   }) {
     return AppUser(
       uid: uid,
@@ -169,6 +196,11 @@ class AppUser {
       height: height ?? this.height,
       interests: interests ?? this.interests,
       superLikesCount: superLikesCount ?? this.superLikesCount,
+      minPhotosPreference: minPhotosPreference ?? this.minPhotosPreference,
+      hasBioPreference: hasBioPreference ?? this.hasBioPreference,
+      showOutsideDistance: showOutsideDistance ?? this.showOutsideDistance,
+      showOutsideAge: showOutsideAge ?? this.showOutsideAge,
+      globalMode: globalMode ?? this.globalMode,
     );
   }
 }

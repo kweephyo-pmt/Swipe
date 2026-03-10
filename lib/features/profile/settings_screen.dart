@@ -16,14 +16,17 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  double _distance = 50;
-  double _minAge = 18;
-  double _maxAge = 35;
-  bool _showOutsideDistance = true;
-  bool _showOutsideAge = false;
-  bool _global = false;
-  bool _hasBio = false;
-  double _minPhotos = 1;
+  // Local state for smooth sliding without spamming Firestore
+  double? _distance;
+  double? _minAge;
+  double? _maxAge;
+  double? _minPhotos;
+
+  Future<void> _updatePref(String key, dynamic value) async {
+    final user = ref.read(currentUserProvider).valueOrNull;
+    if (user == null) return;
+    await ref.read(firestoreServiceProvider).updateUser(user.uid, {key: value});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,25 +108,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   _buildSliderTile(
                     title: 'Minimum number of photos',
-                    value: _minPhotos,
+                    value: _minPhotos ?? user.minPhotosPreference.toDouble(),
                     min: 1,
                     max: 6,
                     onChanged: (val) => setState(() => _minPhotos = val),
-                    valueLabel: _minPhotos.toInt().toString(),
+                    onChangeEnd: (val) => _updatePref('minPhotosPreference', val.toInt()),
+                    valueLabel: (_minPhotos ?? user.minPhotosPreference).toInt().toString(),
                   ),
                   _buildDivider(),
                   _buildSwitchTile(
                     title: 'Has a bio',
-                    value: _hasBio,
-                    onChanged: (val) => setState(() => _hasBio = val),
+                    value: user.hasBioPreference,
+                    onChanged: (val) => _updatePref('hasBioPreference', val),
                   ),
                   _buildDivider(),
-                  _buildListTile(title: 'Interests', value: 'Select'),
+                  _buildListTile(
+                    title: 'Interests', 
+                    value: user.interests.isNotEmpty ? '${user.interests.length} selected' : 'Select',
+                    onTap: () => context.push('/edit-profile'),
+                  ),
                   _buildDivider(),
                   _buildListTile(
                       title: 'Looking for',
-                      value: 'Long-term partner',
-                      icon: Icons.remove_red_eye_outlined),
+                      value: user.lookingFor,
+                      icon: Icons.remove_red_eye_outlined,
+                      onTap: () => context.push('/edit-profile'),
+                  ),
                 ],
               ),
 
@@ -135,53 +145,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   _buildListTile(
                     title: 'Location',
-                    value: 'My Current Location',
+                    value: user.locationName ?? 'My Current Location',
                     subtitle: 'Change locations to find matches anywhere.',
                   ),
                   _buildDivider(),
                   _buildSliderTile(
                     title: 'Maximum distance',
-                    value: _distance,
+                    value: _distance ?? user.maxDistanceKm.toDouble(),
                     min: 1,
                     max: 100,
                     onChanged: (val) => setState(() => _distance = val),
-                    valueLabel: '${_distance.toInt()} mi',
+                    onChangeEnd: (val) => _updatePref('maxDistanceKm', val.toInt()),
+                    valueLabel: '${(_distance ?? user.maxDistanceKm).toInt()} mi',
                   ),
                   _buildSwitchTile(
                     title:
                         'Show people further away if I run out of profiles to see.',
-                    value: _showOutsideDistance,
-                    onChanged: (val) =>
-                        setState(() => _showOutsideDistance = val),
+                    value: user.showOutsideDistance,
+                    onChanged: (val) => _updatePref('showOutsideDistance', val),
                     isSubtitle: true,
                   ),
                   _buildDivider(),
-                  _buildListTile(title: 'Interested in', value: 'Women'),
+                  _buildListTile(title: 'Interested in', value: user.interestedIn),
                   _buildDivider(),
                   _buildRangeSliderTile(
                     title: 'Age range',
                     min: 18,
                     max: 100,
-                    startValue: _minAge,
-                    endValue: _maxAge,
+                    startValue: _minAge ?? user.minAgePreference.toDouble(),
+                    endValue: _maxAge ?? user.maxAgePreference.toDouble(),
                     onChanged: (start, end) => setState(() {
                       _minAge = start;
                       _maxAge = end;
                     }),
-                    valueLabel: '${_minAge.toInt()}-${_maxAge.toInt()}',
+                    onChangeEnd: (start, end) {
+                      _updatePref('minAgePreference', start.toInt());
+                      _updatePref('maxAgePreference', end.toInt());
+                    },
+                    valueLabel: '${(_minAge ?? user.minAgePreference).toInt()}-${(_maxAge ?? user.maxAgePreference).toInt()}',
                   ),
                   _buildSwitchTile(
                     title:
                         'Show people slightly out of my preferred range if I run out of profiles to see',
-                    value: _showOutsideAge,
-                    onChanged: (val) => setState(() => _showOutsideAge = val),
+                    value: user.showOutsideAge,
+                    onChanged: (val) => _updatePref('showOutsideAge', val),
                     isSubtitle: true,
                   ),
                   _buildDivider(),
                   _buildSwitchTile(
                     title: 'Global',
-                    value: _global,
-                    onChanged: (val) => setState(() => _global = val),
+                    value: user.globalMode,
+                    onChanged: (val) => _updatePref('globalMode', val),
                   ),
                 ],
               ),
@@ -492,6 +506,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     String? value,
     String? subtitle,
     IconData? icon,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
@@ -518,7 +533,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: Colors.white30, size: 20),
         ],
       ),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 
@@ -526,6 +541,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required String title,
     String? subtitle,
     bool isChecked = false,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
@@ -541,7 +557,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       trailing: isChecked
           ? const Icon(Icons.check_rounded, color: Color(0xFFFF4458), size: 24)
           : null,
-      onTap: () {},
+      onTap: onTap,
     );
   }
 
@@ -576,6 +592,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required double min,
     required double max,
     required ValueChanged<double> onChanged,
+    required ValueChanged<double> onChangeEnd,
     required String valueLabel,
   }) {
     return Padding(
@@ -616,6 +633,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               min: min,
               max: max,
               onChanged: onChanged,
+              onChangeEnd: onChangeEnd,
             ),
           ),
         ],
@@ -630,6 +648,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required double startValue,
     required double endValue,
     required Function(double, double) onChanged,
+    required Function(double, double) onChangeEnd,
     required String valueLabel,
   }) {
     return Padding(
@@ -671,6 +690,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               min: min,
               max: max,
               onChanged: (vals) => onChanged(vals.start, vals.end),
+              onChangeEnd: (vals) => onChangeEnd(vals.start, vals.end),
             ),
           ),
         ],
