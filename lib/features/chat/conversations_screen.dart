@@ -284,9 +284,6 @@ class _NewMatchCard extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.verified_rounded,
-                        color: Color(0xFF00C6FF), size: 14),
                   ],
                 ),
               ],
@@ -356,6 +353,9 @@ class _ConversationTile extends ConsumerWidget {
             ? timeago.format(match.lastMessageTime!, locale: 'en_short')
             : '';
 
+        final isUnread = match.hasUnread && match.lastMessageSenderId != currentUserId;
+        final didISend = match.lastMessageSenderId == currentUserId;
+
         return GestureDetector(
           onTap: () => context.push(
             '/chat/${match.matchId}?name=${Uri.encodeComponent(user.name)}&photo=${Uri.encodeComponent(user.firstPhotoUrl)}',
@@ -399,32 +399,42 @@ class _ConversationTile extends ConsumerWidget {
                               fontSize: 16,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.verified_rounded,
-                              color: Color(0xFF00C6FF), size: 16),
                         ],
                       ),
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.reply_rounded,
-                            color: AppColors.textSecondary,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 6),
+                          if (didISend) ...[
+                            const Icon(
+                              Icons.reply_rounded,
+                              color: AppColors.textSecondary,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                          ],
                           Expanded(
                             child: Text(
                               match.lastMessage ?? 'Say hello! 👋',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.inter(
-                                color: AppColors.textSecondary,
+                                color: isUnread ? AppColors.textPrimary : AppColors.textSecondary,
                                 fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: isUnread ? FontWeight.w800 : FontWeight.w500,
                               ),
                             ),
                           ),
+                          if (isUnread) ...[
+                             const SizedBox(width: 8),
+                             Container(
+                               width: 8,
+                               height: 8,
+                               decoration: const BoxDecoration(
+                                 color: AppColors.primary,
+                                 shape: BoxShape.circle,
+                               ),
+                             ),
+                          ],
                         ],
                       ),
                     ],

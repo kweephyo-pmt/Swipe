@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/chat/chat_screen.dart';
@@ -33,17 +34,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: '/login',
+    initialLocation: '/splash',
     refreshListenable: notifier,
     redirect: (context, state) {
       final authAsync = ref.read(authStateProvider);
       final userAsync = ref.read(currentUserProvider);
+      final loc = state.matchedLocation;
 
-      // Still loading — don't redirect yet
-      if (authAsync.isLoading || userAsync.isLoading) return null;
+      // Still loading — stay on or redirect to splash
+      if (authAsync.isLoading || userAsync.isLoading) {
+        return loc == '/splash' ? null : '/splash';
+      }
 
       final isLoggedIn = authAsync.valueOrNull != null;
-      final loc = state.matchedLocation;
       final isOnAuthPage = loc == '/login' || loc == '/register';
 
       // Not logged in → force to login
@@ -59,14 +62,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return loc == '/onboarding' ? null : '/onboarding';
       }
 
-      // Fully onboarded — redirect away from auth/onboarding pages
-      if (isOnAuthPage || loc == '/onboarding') {
+      // Fully onboarded — redirect away from auth/onboarding/splash pages
+      if (isOnAuthPage || loc == '/onboarding' || loc == '/splash') {
         return '/discovery';
       }
 
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.backgroundGradient,
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          ),
+        ),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),

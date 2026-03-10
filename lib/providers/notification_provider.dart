@@ -19,6 +19,9 @@ final notificationListenerProvider = Provider<void>((ref) {
   final lastNotifiedTimes = <String, DateTime>{};
   final knownMatchIds = <String>{};
   final knownLikerIds = <String>{};
+  
+  // Record exactly when this provider was spun up (e.g. on hot restart)
+  final providerStartTime = DateTime.now();
 
   // 1. Listen for new Matches & new Messages
   ref.listen<AsyncValue<List<app_match.Match>>>(
@@ -30,23 +33,28 @@ final notificationListenerProvider = Provider<void>((ref) {
 
       for (final match in matches) {
         // --- NEW MATCH LOGIC ---
-        if (previous != null && previous.value != null && !knownMatchIds.contains(match.matchId)) {
-          final otherUserId = match.otherUserId(currentUserId);
-          ref.read(firestoreServiceProvider).getUser(otherUserId).then((user) {
-            final senderName = user?.name ?? 'Someone';
-            notificationService.showNotification(
-              id: match.matchId.hashCode ^ 1, // Unique ID for match notification
-              title: 'New Match! 🔥',
-              body: 'You and $senderName liked each other.',
-              payload: '/conversations',
-            );
-          });
+        if (!knownMatchIds.contains(match.matchId)) {
+          knownMatchIds.add(match.matchId);
+          
+          // Only notify if the match was definitely created after the app started
+          if (match.timestamp.isAfter(providerStartTime)) {
+            final otherUserId = match.otherUserId(currentUserId);
+            ref.read(firestoreServiceProvider).getUser(otherUserId).then((user) {
+              final senderName = user?.name ?? 'Someone';
+              notificationService.showNotification(
+                id: match.matchId.hashCode ^ 1, // Unique ID for match notification
+                title: 'New Match! 🔥',
+                body: 'You and $senderName liked each other.',
+                payload: '/conversations',
+              );
+            });
+          }
         }
-        knownMatchIds.add(match.matchId);
 
         // --- NEW MESSAGE LOGIC ---
-        if (match.lastMessageTime == null || match.lastMessage == null)
+        if (match.lastMessageTime == null || match.lastMessage == null) {
           continue;
+        }
 
         // If the sender is ourselves, ignore
         if (match.lastMessageSenderId == currentUserId) continue;
@@ -56,12 +64,11 @@ final notificationListenerProvider = Provider<void>((ref) {
 
         // Ensure we only notify if it's strictly newer
         if (knownTime == null || match.lastMessageTime!.isAfter(knownTime)) {
-          // Avoid spamming on first load: only notify if we already saw the match
-          // list at least once (i.e., we have a non-null previous state or if the list wasn't empty)
-          if (previous != null &&
-              previous.value != null &&
-              previous.value!.isNotEmpty) {
-            // Get user info to show name using the provider we already have
+          lastNotifiedTimes[match.matchId] = match.lastMessageTime!;
+
+          // Only notify if the message was actually sent after the app started!
+          // This absolutely prevents past messages from triggering notifications on hot restart.
+          if (match.lastMessageTime!.isAfter(providerStartTime)) {
             final otherUserId = match.otherUserId(currentUserId);
 
             ref
@@ -83,8 +90,6 @@ final notificationListenerProvider = Provider<void>((ref) {
               );
             });
           }
-
-          lastNotifiedTimes[match.matchId] = match.lastMessageTime!;
         }
       }
     },
@@ -99,15 +104,20 @@ final notificationListenerProvider = Provider<void>((ref) {
       final likers = next.value ?? [];
 
       for (final liker in likers) {
-        if (previous != null && previous.value != null && !knownLikerIds.contains(liker.uid)) {
-          notificationService.showNotification(
-            id: liker.uid.hashCode, 
-            title: 'New Like! ❤️',
-            body: 'Someone just liked you!',
-            payload: '/likes',
-          );
+        if (!knownLikerIds.contains(liker.uid)) {
+          knownLikerIds.add(liker.uid);
+          
+          // For likes, we don't fetch the timestamp currently.
+          // Block notifications for the first 3 seconds after a hot restart to swallow the initial state load.
+          if (DateTime.now().difference(providerStartTime).inSeconds > 3) {
+            notificationService.showNotification(
+              id: liker.uid.hashCode, 
+              title: 'New Like! ❤️',
+              body: 'Someone just liked you!',
+              payload: '/likes',
+            );
+          }
         }
-        knownLikerIds.add(liker.uid);
       }
     },
   );

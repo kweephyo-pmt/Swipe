@@ -60,18 +60,21 @@ class NotificationService {
   }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'swipe_main_channel',
+      'swipe_main_channel_v2', // Changed channel ID to bypass cache
       'Swipe Notifications',
       channelDescription: 'Main channel for app notifications',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
+      playSound: true,
+      enableVibration: true,
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
     const NotificationDetails platformDetails = NotificationDetails(

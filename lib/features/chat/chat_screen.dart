@@ -40,6 +40,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       final hasText = _msgCtrl.text.trim().isNotEmpty;
       if (hasText != _hasText) setState(() => _hasText = hasText);
     });
+
+    // Mark messages as read when entering the chat
+    Future.microtask(() {
+      if (mounted) {
+        ref.read(firestoreServiceProvider).markMessagesRead(widget.matchId);
+      }
+    });
   }
 
   @override
@@ -93,6 +100,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               error: (e, _) => Center(child: Text('Error: $e')),
               data: (messages) {
                 if (messages.isEmpty) return _buildEmptyState();
+
+                // Mark messages as read if the last message wasn't from us
+                if (messages.isNotEmpty &&
+                    messages.first.senderId != currentUid) {
+                  Future.microtask(() {
+                    if (mounted) {
+                      ref
+                          .read(firestoreServiceProvider)
+                          .markMessagesRead(widget.matchId);
+                    }
+                  });
+                }
 
                 // Group messages by date
                 return ListView.builder(
