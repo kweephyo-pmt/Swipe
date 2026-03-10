@@ -7,6 +7,7 @@ class Match {
   final DateTime timestamp;
   final String? lastMessage;
   final DateTime? lastMessageTime;
+  final String? lastMessageSenderId;
   final bool hasUnread;
 
   Match({
@@ -16,6 +17,7 @@ class Match {
     required this.timestamp,
     this.lastMessage,
     this.lastMessageTime,
+    this.lastMessageSenderId,
     this.hasUnread = false,
   });
 
@@ -36,6 +38,7 @@ class Match {
       lastMessageTime: data['lastMessageTime'] != null
           ? (data['lastMessageTime'] as Timestamp).toDate()
           : null,
+      lastMessageSenderId: data['lastMessageSenderId'],
       hasUnread: data['hasUnread'] ?? false,
     );
   }
@@ -48,6 +51,7 @@ class Match {
       'lastMessage': lastMessage,
       'lastMessageTime':
           lastMessageTime != null ? Timestamp.fromDate(lastMessageTime!) : null,
+      'lastMessageSenderId': lastMessageSenderId,
       'hasUnread': hasUnread,
     };
   }

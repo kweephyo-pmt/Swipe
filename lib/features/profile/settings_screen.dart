@@ -112,8 +112,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     min: 1,
                     max: 6,
                     onChanged: (val) => setState(() => _minPhotos = val),
-                    onChangeEnd: (val) => _updatePref('minPhotosPreference', val.toInt()),
-                    valueLabel: (_minPhotos ?? user.minPhotosPreference).toInt().toString(),
+                    onChangeEnd: (val) =>
+                        _updatePref('minPhotosPreference', val.toInt()),
+                    valueLabel: (_minPhotos ?? user.minPhotosPreference)
+                        .toInt()
+                        .toString(),
                   ),
                   _buildDivider(),
                   _buildSwitchTile(
@@ -123,16 +126,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   _buildDivider(),
                   _buildListTile(
-                    title: 'Interests', 
-                    value: user.interests.isNotEmpty ? '${user.interests.length} selected' : 'Select',
+                    title: 'Interests',
+                    value: user.interests.isNotEmpty
+                        ? '${user.interests.length} selected'
+                        : 'Select',
                     onTap: () => context.push('/edit-profile'),
                   ),
                   _buildDivider(),
                   _buildListTile(
-                      title: 'Looking for',
-                      value: user.lookingFor,
-                      icon: Icons.remove_red_eye_outlined,
-                      onTap: () => context.push('/edit-profile'),
+                    title: 'Looking for',
+                    value: user.lookingFor,
+                    icon: Icons.remove_red_eye_outlined,
+                    onTap: () => context.push('/edit-profile'),
                   ),
                 ],
               ),
@@ -155,8 +160,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     min: 1,
                     max: 100,
                     onChanged: (val) => setState(() => _distance = val),
-                    onChangeEnd: (val) => _updatePref('maxDistanceKm', val.toInt()),
-                    valueLabel: '${(_distance ?? user.maxDistanceKm).toInt()} mi',
+                    onChangeEnd: (val) =>
+                        _updatePref('maxDistanceKm', val.toInt()),
+                    valueLabel:
+                        '${(_distance ?? user.maxDistanceKm).toInt()} mi',
                   ),
                   _buildSwitchTile(
                     title:
@@ -166,7 +173,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     isSubtitle: true,
                   ),
                   _buildDivider(),
-                  _buildListTile(title: 'Interested in', value: user.interestedIn),
+                  _buildListTile(
+                      title: 'Interested in', value: user.interestedIn),
                   _buildDivider(),
                   _buildRangeSliderTile(
                     title: 'Age range',
@@ -182,7 +190,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       _updatePref('minAgePreference', start.toInt());
                       _updatePref('maxAgePreference', end.toInt());
                     },
-                    valueLabel: '${(_minAge ?? user.minAgePreference).toInt()}-${(_maxAge ?? user.maxAgePreference).toInt()}',
+                    valueLabel:
+                        '${(_minAge ?? user.minAgePreference).toInt()}-${(_maxAge ?? user.maxAgePreference).toInt()}',
                   ),
                   _buildSwitchTile(
                     title:

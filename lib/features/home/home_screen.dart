@@ -1,19 +1,24 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../providers/discovery_provider.dart';
+import '../../providers/notification_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Keep notification listener active
+    ref.watch(notificationListenerProvider);
+
     return Scaffold(
       extendBody: true,
       // RepaintBoundary isolates the tab body from the nav bar repaints
@@ -107,7 +112,7 @@ class _BottomNav extends ConsumerWidget {
                 );
               }
 
-              if (i == 1 && !isSelected && likesCount > 0) {
+              if (i == 1 && likesCount > 0) {
                 iconWidget = Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -139,31 +144,54 @@ class _BottomNav extends ConsumerWidget {
                 );
               }
 
+              final animatedIcon = AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOutBack,
+                switchOutCurve: Curves.easeInQuint,
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(
+                    scale: Tween<double>(begin: 0.5, end: 1.0).animate(animation),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: KeyedSubtree(
+                  key: ValueKey<bool>(isSelected),
+                  child: iconWidget,
+                ),
+              );
+
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => onTap(i),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    onTap(i);
+                  },
                   behavior: HitTestBehavior.opaque,
                   child: Center(
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOutCubic,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutBack,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: isSelected ? 20 : 16,
+                          vertical: isSelected ? 12 : 10),
                       decoration: BoxDecoration(
                         color:
                             isSelected ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.35),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: isSelected
+                                ? AppColors.primary.withOpacity(0.35)
+                                : Colors.transparent,
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: iconWidget,
+                      child: animatedIcon,
                     ),
                   ),
                 ),

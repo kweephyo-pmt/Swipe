@@ -60,6 +60,7 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_local_notifications: ^19.5.0
   dotted_border: ^2.1.0
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:
@@ -76,3 +77,9 @@ flutter:
     - assets/images/
     - assets/animations/
     - assets/icons/
+
+flutter_native_splash:
+  color: "#111118"
+  image: "ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon~ios-marketing.png"
+  android: true
+  ios: true

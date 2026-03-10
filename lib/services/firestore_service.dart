@@ -362,6 +362,7 @@ class FirestoreService {
     batch.update(matchRef, {
       'lastMessage': msgWithId.text,
       'lastMessageTime': FieldValue.serverTimestamp(),
+      'lastMessageSenderId': msgWithId.senderId,
       'hasUnread': true,
     });
 

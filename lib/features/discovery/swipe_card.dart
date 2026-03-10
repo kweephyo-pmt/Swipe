@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme/app_theme.dart';
@@ -39,6 +40,7 @@ class _SwipeCardState extends State<SwipeCard> {
       borderRadius: BorderRadius.circular(28),
       child: GestureDetector(
         onTapUp: (details) {
+          HapticFeedback.lightImpact();
           final half = MediaQuery.of(context).size.width / 2;
           if (details.globalPosition.dx < half) {
             setState(() => _currentPhotoIndex =
