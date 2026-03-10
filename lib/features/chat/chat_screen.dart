@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/message.dart';
 import '../../providers/chat_provider.dart';
+import '../../providers/discovery_provider.dart';
 import '../../providers/service_providers.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -81,6 +82,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Listen to matches provider to auto-pop if the match is deleted
+    ref.listen(matchesProvider, (previous, next) {
+      if (!next.isLoading && !next.hasError) {
+        final matches = next.valueOrNull ?? [];
+        final hasMatch = matches.any((m) => m.matchId == widget.matchId);
+        if (!hasMatch && mounted) {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        }
+      }
+    });
+
     final messagesAsync = ref.watch(messagesProvider(widget.matchId));
     final currentUid = ref.watch(authStateProvider).valueOrNull?.uid ?? '';
     final bottomPadding = MediaQuery.of(context).padding.bottom;
@@ -295,8 +309,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                         await ref
                             .read(firestoreServiceProvider)
                             .unmatch(widget.matchId);
-                        if (context.mounted) {
-                          Navigator.pop(context);
+                        if (mounted) {
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
                         }
                       }
                     }
