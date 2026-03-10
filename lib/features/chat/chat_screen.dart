@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -88,8 +89,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
         final matches = next.valueOrNull ?? [];
         final hasMatch = matches.any((m) => m.matchId == widget.matchId);
         if (!hasMatch && mounted) {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context);
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/discovery');
           }
         }
       }
@@ -223,7 +226,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               Positioned(
                 left: 6,
                 child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/discovery');
+                    }
+                  },
                   child: Container(
                     width: 44,
                     height: 44,
@@ -309,11 +318,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                         await ref
                             .read(firestoreServiceProvider)
                             .unmatch(widget.matchId);
-                        if (mounted) {
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          }
-                        }
                       }
                     }
                   },
