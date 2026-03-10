@@ -5,5 +5,7 @@ import 'service_providers.dart';
 
 final messagesProvider =
     StreamProvider.family<List<Message>, String>((ref, matchId) {
+  final authState = ref.watch(authStateProvider);
+  if (authState.valueOrNull == null) return Stream.value([]);
   return ref.watch(firestoreServiceProvider).messagesStream(matchId);
 });
