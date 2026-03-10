@@ -137,7 +137,9 @@ class MatchOverlay extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ).animate().scale(duration: 600.ms, curve: Curves.easeOutCubic),
+                  )
+                      .animate()
+                      .scale(duration: 600.ms, curve: Curves.easeOutCubic),
 
                   const SizedBox(height: 28),
 

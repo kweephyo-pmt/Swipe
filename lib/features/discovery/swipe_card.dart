@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -53,6 +51,8 @@ class _SwipeCardState extends State<SwipeCard> {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // ── Solid background to prevent bottom cards from showing during cross-fades ──
+            Container(color: AppColors.surfaceVariant),
             // ── Background photo ───────────────────────────────────────
             CachedNetworkImage(
               imageUrl: user.photoUrls.isNotEmpty
@@ -68,7 +68,7 @@ class _SwipeCardState extends State<SwipeCard> {
               ),
               errorWidget: (_, __, ___) => Container(
                 color: AppColors.surfaceVariant,
-                child: Icon(Icons.person_rounded,
+                child: const Icon(Icons.person_rounded,
                     color: AppColors.textHint, size: 80),
               ),
             ),
@@ -131,7 +131,8 @@ class _SwipeCardState extends State<SwipeCard> {
                     children: [
                       // Active status chip
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -148,7 +149,8 @@ class _SwipeCardState extends State<SwipeCard> {
                       if (widget.isSuperLiked) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: const Color(0xFF00C6FF),
                             borderRadius: BorderRadius.circular(12),
@@ -156,7 +158,8 @@ class _SwipeCardState extends State<SwipeCard> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.star_rounded, color: Colors.white, size: 14),
+                              const Icon(Icons.star_rounded,
+                                  color: Colors.white, size: 14),
                               const SizedBox(width: 4),
                               Text(
                                 'Super Liked You',
@@ -217,19 +220,20 @@ class _SwipeCardState extends State<SwipeCard> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Bio / Compatibility text
-                  Text(
-                    user.bio.isNotEmpty ? user.bio : "You're two of the zodiac's philosophers, always pondering life's biggest questions.",
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
+                  // Bio
+                  if (user.bio.isNotEmpty) ...[
+                    Text(
+                      user.bio,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-
+                  ],
                 ],
               ),
             ),
@@ -238,5 +242,4 @@ class _SwipeCardState extends State<SwipeCard> {
       ),
     );
   }
-
 }

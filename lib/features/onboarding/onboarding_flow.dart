@@ -39,13 +39,20 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
 
   final List<String> _genders = ['Man', 'Woman', 'Non-binary', 'Other'];
   final List<String> _orientations = ['Women', 'Men', 'Everyone'];
-  final List<String> _lookingForOptions = ['Long-term partner', 'Long-term, open to short', 'Short-term, open to long', 'Short-term fun', 'New friends', 'Still figuring it out'];
+  final List<String> _lookingForOptions = [
+    'Long-term partner',
+    'Long-term, open to short',
+    'Short-term, open to long',
+    'Short-term fun',
+    'New friends',
+    'Still figuring it out'
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
           child: Column(
             children: [
@@ -64,13 +71,13 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                                 curve: Curves.easeInOut,
                               );
                             },
-                            icon: Icon(Icons.arrow_back_ios_rounded,
+                            icon: const Icon(Icons.arrow_back_ios_rounded,
                                 color: AppColors.textPrimary),
                           ),
                         const Spacer(),
                         Text(
                           '${_currentPage + 1} / 6',
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: AppColors.textSecondary, fontSize: 14),
                         ),
                       ],
@@ -81,7 +88,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                       child: LinearProgressIndicator(
                         value: (_currentPage + 1) / 6,
                         backgroundColor: AppColors.surfaceVariant,
-                        valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                        valueColor:
+                            const AlwaysStoppedAnimation(AppColors.primary),
                         minHeight: 4,
                       ),
                     ),
@@ -243,15 +251,16 @@ class _NameStepState extends State<_NameStep> {
           const SizedBox(height: 12),
           const Text(
             'This is how you\'ll appear on Swipe.',
-            style:
-                TextStyle(color: AppColors.textSecondary, fontSize: 15),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 100.ms),
           const SizedBox(height: 40),
           TextFormField(
             controller: _ctrl,
             autofocus: true,
             style: const TextStyle(
-                color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
+                color: AppColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w600),
             decoration: const InputDecoration(hintText: 'Your first name'),
             onChanged: (_) => setState(() {}),
           ).animate().fadeIn(delay: 200.ms),
@@ -283,8 +292,7 @@ class _BirthdayStepState extends State<_BirthdayStep> {
     final now = DateTime.now();
     int age = now.year - _selectedDate.year;
     if (now.month < _selectedDate.month ||
-        (now.month == _selectedDate.month &&
-            now.day < _selectedDate.day)) {
+        (now.month == _selectedDate.month && now.day < _selectedDate.day)) {
       age--;
     }
     return age;
@@ -363,10 +371,8 @@ class _BirthdayStepState extends State<_BirthdayStep> {
                         (_selectedDate.year - (DateTime.now().year - 107))
                             .clamp(0, 89),
                     onChanged: (i) => setState(() {
-                      _selectedDate = DateTime(
-                          DateTime.now().year - 107 + i,
-                          _selectedDate.month,
-                          _selectedDate.day);
+                      _selectedDate = DateTime(DateTime.now().year - 107 + i,
+                          _selectedDate.month, _selectedDate.day);
                     }),
                   ),
                 ),
@@ -385,8 +391,18 @@ class _BirthdayStepState extends State<_BirthdayStep> {
 
   String _monthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month - 1];
   }
@@ -596,7 +612,8 @@ class _LookingForStepState extends State<_LookingForStep> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceVariant,
                       border: Border.all(
-                        color: isSelected ? AppColors.primary : Colors.transparent,
+                        color:
+                            isSelected ? AppColors.primary : Colors.transparent,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(16),
@@ -607,13 +624,17 @@ class _LookingForStepState extends State<_LookingForStep> {
                         Text(
                           option,
                           style: TextStyle(
-                            color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.textPrimary,
                             fontSize: 16,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                         if (isSelected)
-                          const Icon(Icons.check_circle_rounded, color: AppColors.primary),
+                          const Icon(Icons.check_circle_rounded,
+                              color: AppColors.primary),
                       ],
                     ),
                   ),
@@ -650,9 +671,8 @@ class _SelectChip extends StatelessWidget {
           gradient: isSelected ? AppColors.primaryGradient : null,
           color: isSelected ? null : AppColors.surfaceVariant,
           borderRadius: BorderRadius.circular(50),
-          border: isSelected
-              ? null
-              : Border.all(color: AppColors.surfaceVariant),
+          border:
+              isSelected ? null : Border.all(color: AppColors.surfaceVariant),
         ),
         child: Text(
           label,
@@ -691,8 +711,8 @@ class _PhotosStepState extends ConsumerState<_PhotosStep> {
   }
 
   Future<void> _pickAndUpload() async {
-    final xFile = await _picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 80);
+    final xFile =
+        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (xFile == null) return;
 
     setState(() => _uploading = true);
@@ -729,8 +749,7 @@ class _PhotosStepState extends ConsumerState<_PhotosStep> {
           const SizedBox(height: 24),
           Expanded(
             child: GridView.builder(
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
@@ -758,8 +777,8 @@ class _PhotosStepState extends ConsumerState<_PhotosStep> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.primary),
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary),
                     ),
                   );
                 }
@@ -794,8 +813,10 @@ class _PhotoTile extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Image.network(url, fit: BoxFit.cover,
-              width: double.infinity, height: double.infinity),
+          child: Image.network(url,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity),
         ),
         Positioned(
           top: 6,
@@ -827,8 +848,8 @@ class _AddPhotoTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceVariant,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-              color: AppColors.primary.withOpacity(0.5), width: 2),
+          border:
+              Border.all(color: AppColors.primary.withOpacity(0.5), width: 2),
         ),
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -875,7 +896,7 @@ class _BioStepState extends State<_BioStep> {
           const SizedBox(height: 8),
           Text(
             '${_ctrl.text.length} / ${AppConstants.bioMaxLength} characters',
-            style: TextStyle(color: AppColors.textHint, fontSize: 13),
+            style: const TextStyle(color: AppColors.textHint, fontSize: 13),
           ),
           const SizedBox(height: 24),
           Expanded(
@@ -884,11 +905,10 @@ class _BioStepState extends State<_BioStep> {
               maxLines: null,
               expands: true,
               maxLength: AppConstants.bioMaxLength,
-              style: const TextStyle(
-                  color: AppColors.textPrimary, fontSize: 16),
+              style:
+                  const TextStyle(color: AppColors.textPrimary, fontSize: 16),
               decoration: const InputDecoration(
-                hintText:
-                    'Tell others something interesting about yourself...',
+                hintText: 'Tell others something interesting about yourself...',
                 alignLabelWithHint: true,
                 counterText: '',
               ),

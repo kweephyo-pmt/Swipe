@@ -102,9 +102,7 @@ class _BottomNav extends ConsumerWidget {
               } else {
                 iconWidget = Icon(
                   _icons[i],
-                  color: isSelected
-                      ? Colors.white
-                      : const Color(0xFF555566),
+                  color: isSelected ? Colors.white : const Color(0xFF555566),
                   size: 26,
                 );
               }
@@ -152,9 +150,8 @@ class _BottomNav extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : Colors.transparent,
+                        color:
+                            isSelected ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: isSelected
                             ? [

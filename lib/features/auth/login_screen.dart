@@ -72,7 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: AppColors.backgroundGradient,
         ),
         child: SafeArea(
@@ -95,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       TextFormField(
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
-                        style: TextStyle(color: AppColors.textPrimary),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         decoration: const InputDecoration(
                           hintText: 'Email',
                           prefixIcon: Icon(Icons.email_rounded,
@@ -114,10 +114,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       TextFormField(
                         controller: _passCtrl,
                         obscureText: _obscurePass,
-                        style: TextStyle(color: AppColors.textPrimary),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         decoration: InputDecoration(
                           hintText: 'Password',
-                          prefixIcon: Icon(Icons.lock_rounded,
+                          prefixIcon: const Icon(Icons.lock_rounded,
                               color: AppColors.textHint),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -237,11 +237,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildDivider() {
-    return Row(
+    return const Row(
       children: [
         Expanded(child: Divider(color: AppColors.surfaceVariant)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'OR',
             style: TextStyle(color: AppColors.textHint, fontSize: 12),
@@ -300,7 +300,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 );
               }
             },
-            child: Text('Send', style: TextStyle(color: AppColors.primary)),
+            child:
+                const Text('Send', style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),

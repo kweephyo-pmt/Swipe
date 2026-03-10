@@ -19,16 +19,41 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
 
   static const _plans = [
     {'label': 'Monthly', 'price': '\$9.99', 'per': '/month', 'tag': ''},
-    {'label': 'Yearly', 'price': '\$4.99', 'per': '/month', 'tag': 'BEST VALUE'},
+    {
+      'label': 'Yearly',
+      'price': '\$4.99',
+      'per': '/month',
+      'tag': 'BEST VALUE'
+    },
   ];
 
   static const _perks = [
-    (Icons.favorite_rounded, 'See Who Likes You', 'Know exactly who\'s interested before you swipe'),
-    (Icons.all_inclusive_rounded, 'Unlimited Swipes', 'Never run out of swipes again'),
-    (Icons.replay_rounded, 'Rewind Last Swipe', 'Accidentally swiped left? Undo it'),
+    (
+      Icons.favorite_rounded,
+      'See Who Likes You',
+      'Know exactly who\'s interested before you swipe'
+    ),
+    (
+      Icons.all_inclusive_rounded,
+      'Unlimited Swipes',
+      'Never run out of swipes again'
+    ),
+    (
+      Icons.replay_rounded,
+      'Rewind Last Swipe',
+      'Accidentally swiped left? Undo it'
+    ),
     (Icons.star_rounded, 'Super Likes', '5 Super Likes per day to stand out'),
-    (Icons.location_on_rounded, 'Passport', 'Match with people anywhere in the world'),
-    (Icons.visibility_off_rounded, 'Invisible Mode', 'Browse profiles without being seen'),
+    (
+      Icons.location_on_rounded,
+      'Passport',
+      'Match with people anywhere in the world'
+    ),
+    (
+      Icons.visibility_off_rounded,
+      'Invisible Mode',
+      'Browse profiles without being seen'
+    ),
   ];
 
   Future<void> _upgrade() async {
@@ -76,21 +101,29 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
             children: [
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     IconButton(
                       onPressed: () => context.pop(),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                      icon: const Icon(Icons.close_rounded,
+                          color: Colors.white70),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
+                        gradient: const LinearGradient(
+                            colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text('GOLD', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800, fontSize: 12)),
+                      child: const Text('GOLD',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12)),
                     ),
                   ],
                 ),
@@ -121,8 +154,11 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 52),
-                      ).animate().scale(duration: 600.ms, curve: Curves.easeOutCubic),
+                        child: const Icon(Icons.workspace_premium_rounded,
+                            color: Colors.white, size: 52),
+                      )
+                          .animate()
+                          .scale(duration: 600.ms, curve: Curves.easeOutCubic),
 
                       const SizedBox(height: 20),
                       ShaderMask(
@@ -171,12 +207,19 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                   gradient: selected
-                                      ? const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFFB347)])
+                                      ? const LinearGradient(colors: [
+                                          Color(0xFFFFD700),
+                                          Color(0xFFFFB347)
+                                        ])
                                       : null,
-                                  color: selected ? null : Colors.white.withOpacity(0.07),
+                                  color: selected
+                                      ? null
+                                      : Colors.white.withOpacity(0.07),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: selected ? const Color(0xFFFFD700) : Colors.white24,
+                                    color: selected
+                                        ? const Color(0xFFFFD700)
+                                        : Colors.white24,
                                     width: selected ? 2 : 1,
                                   ),
                                 ),
@@ -184,18 +227,43 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                                   children: [
                                     if (plan['tag']!.isNotEmpty)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        margin: const EdgeInsets.only(bottom: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 2),
+                                        margin:
+                                            const EdgeInsets.only(bottom: 8),
                                         decoration: BoxDecoration(
                                           color: Colors.black26,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
-                                        child: Text(plan['tag']!, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: selected ? Colors.black : Colors.white70)),
+                                        child: Text(plan['tag']!,
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w800,
+                                                color: selected
+                                                    ? Colors.black
+                                                    : Colors.white70)),
                                       ),
-                                    Text(plan['label']!, style: TextStyle(color: selected ? Colors.black : Colors.white, fontWeight: FontWeight.w700)),
+                                    Text(plan['label']!,
+                                        style: TextStyle(
+                                            color: selected
+                                                ? Colors.black
+                                                : Colors.white,
+                                            fontWeight: FontWeight.w700)),
                                     const SizedBox(height: 4),
-                                    Text(plan['price']!, style: TextStyle(color: selected ? Colors.black : Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-                                    Text(plan['per']!, style: TextStyle(color: selected ? Colors.black54 : Colors.white54, fontSize: 12)),
+                                    Text(plan['price']!,
+                                        style: TextStyle(
+                                            color: selected
+                                                ? Colors.black
+                                                : Colors.white,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w900)),
+                                    Text(plan['per']!,
+                                        style: TextStyle(
+                                            color: selected
+                                                ? Colors.black54
+                                                : Colors.white54,
+                                            fontSize: 12)),
                                   ],
                                 ),
                               ),
@@ -221,14 +289,24 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 18),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
+                            gradient: const LinearGradient(
+                                colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))],
+                            boxShadow: [
+                              BoxShadow(
+                                  color:
+                                      const Color(0xFFFFD700).withOpacity(0.35),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6))
+                            ],
                           ),
                           child: const Text(
                             '🚀 Start Free Trial',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18),
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18),
                           ),
                         ),
                       ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.3),
@@ -236,7 +314,8 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
 
               const Padding(
                 padding: EdgeInsets.only(bottom: 16),
-                child: Text('Cancel anytime · Billed annually', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                child: Text('Cancel anytime · Billed annually',
+                    style: TextStyle(color: Colors.white38, fontSize: 12)),
               ),
             ],
           ),
@@ -247,7 +326,8 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
 }
 
 class _PerkTile extends StatelessWidget {
-  const _PerkTile({required this.icon, required this.title, required this.desc});
+  const _PerkTile(
+      {required this.icon, required this.title, required this.desc});
   final IconData icon;
   final String title;
   final String desc;
@@ -262,7 +342,8 @@ class _PerkTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
+              gradient: const LinearGradient(
+                  colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: Colors.black, size: 24),
@@ -272,13 +353,20 @@ class _PerkTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15)),
                 const SizedBox(height: 2),
-                Text(desc, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text(desc,
+                    style:
+                        const TextStyle(color: Colors.white54, fontSize: 12)),
               ],
             ),
           ),
-          const Icon(Icons.check_circle_rounded, color: Color(0xFFFFD700), size: 20),
+          const Icon(Icons.check_circle_rounded,
+              color: Color(0xFFFFD700), size: 20),
         ],
       ),
     );

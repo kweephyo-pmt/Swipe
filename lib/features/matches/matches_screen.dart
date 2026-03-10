@@ -67,19 +67,25 @@ class MatchesScreen extends ConsumerWidget {
   }
 
   Widget _buildEmptyState() {
-    return Column(
+    return const Column(
       children: [
-        const _LikesBanner(),
+        _LikesBanner(),
         Expanded(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.favorite_border_rounded, size: 72, color: AppColors.textHint),
-                const SizedBox(height: 16),
-                Text('No matches yet', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
-                Text('Keep swiping to find your match!', style: TextStyle(color: AppColors.textSecondary)),
+                Icon(Icons.favorite_border_rounded,
+                    size: 72, color: AppColors.textHint),
+                SizedBox(height: 16),
+                Text('No matches yet',
+                    style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700)),
+                SizedBox(height: 8),
+                Text('Keep swiping to find your match!',
+                    style: TextStyle(color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -131,7 +137,11 @@ class _LikesBanner extends ConsumerWidget {
                               height: double.infinity,
                               child: user.photoUrls.isNotEmpty
                                   ? ImageFiltered(
-                                      imageFilter: isPremium ? ImageFilter.blur(sigmaX: 0, sigmaY: 0) : ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                      imageFilter: isPremium
+                                          ? ImageFilter.blur(
+                                              sigmaX: 0, sigmaY: 0)
+                                          : ImageFilter.blur(
+                                              sigmaX: 8, sigmaY: 8),
                                       child: CachedNetworkImage(
                                         imageUrl: user.firstPhotoUrl,
                                         fit: BoxFit.cover,
@@ -149,7 +159,10 @@ class _LikesBanner extends ConsumerWidget {
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [const Color(0xFF0F3460).withOpacity(0.6), const Color(0xFF1A1A2E).withOpacity(0.9)],
+                    colors: [
+                      const Color(0xFF0F3460).withOpacity(0.6),
+                      const Color(0xFF1A1A2E).withOpacity(0.9)
+                    ],
                     begin: Alignment.centerRight,
                     end: Alignment.centerLeft,
                   ),
@@ -160,7 +173,8 @@ class _LikesBanner extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   children: [
-                    const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFFD700), size: 36),
+                    const Icon(Icons.workspace_premium_rounded,
+                        color: Color(0xFFFFD700), size: 36),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -168,26 +182,39 @@ class _LikesBanner extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            count == 0 ? 'See who likes you' : '$count ${count == 1 ? 'person' : 'people'} liked you!',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+                            count == 0
+                                ? 'See who likes you'
+                                : '$count ${count == 1 ? 'person' : 'people'} liked you!',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isPremium ? 'Tap to see their profiles' : 'Upgrade to Gold to see them',
-                            style: const TextStyle(color: Colors.white60, fontSize: 12),
+                            isPremium
+                                ? 'Tap to see their profiles'
+                                : 'Upgrade to Gold to see them',
+                            style: const TextStyle(
+                                color: Colors.white60, fontSize: 12),
                           ),
                         ],
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
+                        gradient: const LinearGradient(
+                            colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         isPremium ? 'View' : 'Unlock',
-                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 13),
+                        style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13),
                       ),
                     ),
                   ],

@@ -90,8 +90,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               loading: () => const Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
-              error: (e, _) =>
-                  Center(child: Text('Error: $e')),
+              error: (e, _) => Center(child: Text('Error: $e')),
               data: (messages) {
                 if (messages.isEmpty) return _buildEmptyState();
 
@@ -99,16 +98,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                 return ListView.builder(
                   reverse: true,
                   controller: _scrollCtrl,
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                   itemCount: messages.length,
                   itemBuilder: (_, i) {
                     final msg = messages[i];
                     final isMe = msg.senderId == currentUid;
 
-                    // Show date separator when date changes
-                    final showDate = i == messages.length - 1 ||
-                        !_isSameDay(
-                            messages[i].timestamp, messages[i + 1].timestamp);
+                    // Show date separator when date changes or gap > 60 mins
+                    final prevMsg =
+                        (i + 1 < messages.length) ? messages[i + 1] : null;
+                    final showDate = prevMsg == null ||
+                        msg.timestamp.difference(prevMsg.timestamp).inMinutes >
+                            60 ||
+                        !_isSameDay(msg.timestamp, prevMsg.timestamp);
 
                     // Show avatar when sender changes
                     final showAvatar = !isMe &&
@@ -122,6 +124,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                           isMe: isMe,
                           showAvatar: showAvatar,
                           photoUrl: widget.otherUserPhotoUrl,
+                          isLast: i == 0,
                         ),
                       ],
                     );
@@ -146,113 +149,77 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(64),
+      preferredSize: const Size.fromHeight(70),
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.surfaceVariant,
-              width: 1,
-            ),
-          ),
+        decoration: const BoxDecoration(
+          color: AppColors.background,
         ),
         child: SafeArea(
           bottom: false,
-          child: Row(
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              // Back button
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  margin: const EdgeInsets.only(left: 8),
-                  child: const Icon(
-                    Icons.arrow_back_ios_rounded,
-                    color: AppColors.textPrimary,
-                    size: 20,
+              // Avatar + name centered
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 17,
+                    backgroundColor: AppColors.surfaceVariant,
+                    backgroundImage: widget.otherUserPhotoUrl.isNotEmpty
+                        ? CachedNetworkImageProvider(widget.otherUserPhotoUrl)
+                        : null,
+                    child: widget.otherUserPhotoUrl.isEmpty
+                        ? const Icon(Icons.person_rounded,
+                            color: AppColors.textHint, size: 17)
+                        : null,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.otherUserName,
+                    style: GoogleFonts.inter(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              // Back button on the left
+              Positioned(
+                left: 6,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
                   ),
                 ),
               ),
-
-              // Avatar + name + online status
-              Expanded(
-                child: Row(
-                  children: [
-                    // Avatar with online indicator
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: AppColors.surfaceVariant,
-                          backgroundImage: widget.otherUserPhotoUrl.isNotEmpty
-                              ? CachedNetworkImageProvider(
-                                  widget.otherUserPhotoUrl)
-                              : null,
-                          child: widget.otherUserPhotoUrl.isEmpty
-                              ? const Icon(Icons.person_rounded,
-                                  color: AppColors.textHint, size: 20)
-                              : null,
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: 11,
-                            height: 11,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF4DED8E),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: AppColors.surface, width: 2),
-                            ),
-                          ),
-                        ),
-                      ],
+              // More button on the right
+              Positioned(
+                right: 12,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: AppColors.surfaceVariant,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.otherUserName,
-                          style: GoogleFonts.inter(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          'Online',
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF4DED8E),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    child: const Icon(
+                      Icons.more_horiz_rounded,
+                      color: AppColors.textSecondary,
+                      size: 22,
                     ),
-                  ],
-                ),
-              ),
-
-              // Action button
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.more_horiz_rounded,
-                    color: AppColors.textSecondary,
-                    size: 22,
                   ),
                 ),
               ),
@@ -370,74 +337,78 @@ class _InputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.surfaceVariant, width: 1),
-        ),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
       ),
-      padding: EdgeInsets.fromLTRB(12, 10, 12, bottomPadding + 10),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPadding + 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          // GIF Button
+          Container(
+            height: 44,
+            width: 44,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: AppColors.surfaceVariant,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              'GIF',
+              style: GoogleFonts.inter(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           // Text field
           Expanded(
             child: Container(
-              constraints: const BoxConstraints(maxHeight: 120),
+              constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
               decoration: BoxDecoration(
                 color: AppColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: TextField(
-                controller: controller,
-                focusNode: focusNode,
-                style: GoogleFonts.inter(
-                    color: AppColors.textPrimary, fontSize: 15),
-                minLines: 1,
-                maxLines: 5,
-                textInputAction: TextInputAction.newline,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  hintText: 'Message…',
-                  hintStyle: GoogleFonts.inter(
-                      color: AppColors.textHint, fontSize: 15),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 12),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // Send button
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: hasText ? AppColors.primaryGradient : null,
-              color: hasText ? null : AppColors.surfaceVariant,
-              shape: BoxShape.circle,
-              boxShadow: hasText
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      )
-                    ]
-                  : null,
-            ),
-            child: GestureDetector(
-              onTap: hasText ? onSend : null,
-              child: Icon(
-                Icons.arrow_upward_rounded,
-                color: hasText ? Colors.white : AppColors.textHint,
-                size: 22,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      style: GoogleFonts.inter(
+                          color: AppColors.textPrimary, fontSize: 15),
+                      minLines: 1,
+                      maxLines: 5,
+                      textInputAction: TextInputAction.newline,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: InputDecoration(
+                        hintText: 'Type a message',
+                        hintStyle: GoogleFonts.inter(
+                            color: AppColors.textHint, fontSize: 15),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  if (hasText)
+                    GestureDetector(
+                      onTap: onSend,
+                      child: const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.arrow_circle_up_rounded,
+                          color: Color(0xFF0084FF),
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -455,98 +426,92 @@ class _MessageBubble extends StatelessWidget {
     required this.isMe,
     required this.showAvatar,
     required this.photoUrl,
+    this.isLast = false,
   });
 
   final Message message;
   final bool isMe;
   final bool showAvatar;
   final String photoUrl;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
     const radius = Radius.circular(20);
-    const tightRadius = Radius.circular(5);
+    const tightRadius = Radius.circular(4);
 
     return Padding(
       padding: EdgeInsets.only(
-        bottom: 3,
+        bottom: 6,
         left: isMe ? 48 : 0,
         right: isMe ? 0 : 48,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          // Other user's avatar
-          if (!isMe) ...[
-            if (showAvatar)
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: AppColors.surfaceVariant,
-                backgroundImage: photoUrl.isNotEmpty
-                    ? CachedNetworkImageProvider(photoUrl)
-                    : null,
-                child: photoUrl.isEmpty
-                    ? const Icon(Icons.person_rounded,
-                        color: AppColors.textHint, size: 14)
-                    : null,
-              )
-            else
-              const SizedBox(width: 28),
-            const SizedBox(width: 8),
-          ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment:
+                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: [
+              // Other user's avatar
+              if (!isMe) ...[
+                if (showAvatar)
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: AppColors.surfaceVariant,
+                    backgroundImage: photoUrl.isNotEmpty
+                        ? CachedNetworkImageProvider(photoUrl)
+                        : null,
+                    child: photoUrl.isEmpty
+                        ? const Icon(Icons.person_rounded,
+                            color: AppColors.textHint, size: 14)
+                        : null,
+                  )
+                else
+                  const SizedBox(width: 28),
+                const SizedBox(width: 12),
+              ],
 
-          // Bubble
-          Flexible(
-            child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+              // Bubble
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    gradient: isMe ? AppColors.primaryGradient : null,
-                    color: isMe ? null : AppColors.surface,
+                    color: isMe
+                        ? const Color(0xFF0084FF)
+                        : AppColors.surfaceVariant,
                     borderRadius: BorderRadius.only(
                       topLeft: radius,
                       topRight: radius,
                       bottomLeft: isMe ? radius : tightRadius,
                       bottomRight: isMe ? tightRadius : radius,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Text(
                     message.text,
                     style: GoogleFonts.inter(
-                      color: isMe ? Colors.white : AppColors.textPrimary,
+                      color: Colors.white,
                       fontSize: 15,
-                      height: 1.4,
+                      height: 1.3,
                     ),
                   ),
                 ),
-                const SizedBox(height: 3),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    DateFormat.jm().format(message.timestamp),
-                    style: GoogleFonts.inter(
-                      color: AppColors.textHint,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (isMe && isLast) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Sent',
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+              ),
+            ),
+          ]
         ],
       ),
     );
@@ -560,44 +525,22 @@ class _DateChip extends StatelessWidget {
   final DateTime date;
 
   String _label() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final chipDate = DateTime(date.year, date.month, date.day);
-    final diff = today.difference(chipDate).inDays;
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Yesterday';
-    return DateFormat('MMM d').format(date);
+    return DateFormat("d MMM 'at' h:mm a").format(date);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        children: [
-          const Expanded(
-              child: Divider(color: AppColors.surfaceVariant, height: 1)),
-          const SizedBox(width: 12),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              _label(),
-              style: GoogleFonts.inter(
-                color: AppColors.textHint,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+      padding: const EdgeInsets.only(top: 16, bottom: 8),
+      child: Center(
+        child: Text(
+          _label(),
+          style: GoogleFonts.inter(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(width: 12),
-          const Expanded(
-              child: Divider(color: AppColors.surfaceVariant, height: 1)),
-        ],
+        ),
       ),
     );
   }

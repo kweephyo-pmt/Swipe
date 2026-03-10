@@ -20,17 +20,12 @@ class FirestoreService {
   }
 
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
-    await _db
-        .collection(AppConstants.usersCollection)
-        .doc(uid)
-        .update(data);
+    await _db.collection(AppConstants.usersCollection).doc(uid).update(data);
   }
 
   Future<AppUser?> getUser(String uid) async {
-    final doc = await _db
-        .collection(AppConstants.usersCollection)
-        .doc(uid)
-        .get();
+    final doc =
+        await _db.collection(AppConstants.usersCollection).doc(uid).get();
     if (!doc.exists) return null;
     return AppUser.fromFirestore(doc);
   }
@@ -105,6 +100,17 @@ class FirestoreService {
         },
         SetOptions(merge: true),
       );
+
+      // If action is superLike, also decrement superLikesCount (with a minimum of 0 essentially)
+      // Since FieldValue.increment doesn't have a clamp, we increment by -1.
+      // The frontend UI should prevent users from triggering this if superLikesCount <= 0.
+      if (action == 'superLike') {
+        batch.update(
+          _db.collection(AppConstants.usersCollection).doc(fromUserId),
+          {'superLikesCount': FieldValue.increment(-1)},
+        );
+      }
+
       await batch.commit();
     } else {
       // DISLIKE — commit the swipe first, then clean up received_likes.
@@ -181,11 +187,7 @@ class FirestoreService {
 
   /// Real-time stream of UIDs that SUPER LIKED [userId].
   Stream<Set<String>> receivedSuperLikesStream(String userId) {
-    return _db
-        .collection('received_likes')
-        .doc(userId)
-        .snapshots()
-        .map((doc) {
+    return _db.collection('received_likes').doc(userId).snapshots().map((doc) {
       if (!doc.exists) return <String>{};
       final data = doc.data() as Map<String, dynamic>;
       final superLikerIds = <String>{};
@@ -201,20 +203,26 @@ class FirestoreService {
   }
 
   Future<void> upgradeToPremium(String userId) async {
-    await _db
-        .collection(AppConstants.usersCollection)
-        .doc(userId)
-        .update({'isPremium': true});
+    final nextMonth = DateTime.now().add(const Duration(days: 30));
+    await _db.collection(AppConstants.usersCollection).doc(userId).update({
+      'isPremium': true,
+      'premiumEndDate': Timestamp.fromDate(nextMonth),
+      'superLikesCount': 5,
+    });
+  }
+
+  Future<void> buySuperLikes(String userId, int count) async {
+    await _db.collection(AppConstants.usersCollection).doc(userId).update({
+      'superLikesCount': FieldValue.increment(count),
+    });
   }
 
   Future<bool> checkMutualLike({
     required String user1Id,
     required String user2Id,
   }) async {
-    final doc = await _db
-        .collection(AppConstants.likesCollection)
-        .doc(user2Id)
-        .get();
+    final doc =
+        await _db.collection(AppConstants.likesCollection).doc(user2Id).get();
 
     if (!doc.exists) return false;
     final data = doc.data() as Map<String, dynamic>;
@@ -313,20 +321,46 @@ class FirestoreService {
   }) async {
     final batch = _db.batch();
 
-    // Add message to subcollection
-    final msgRef = _db
+    final now = DateTime.now().toUtc();
+    final batchId =
+        'batch_${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+
+    final batchRef = _db
         .collection(AppConstants.matchesCollection)
         .doc(matchId)
-        .collection(AppConstants.messagesSubcollection)
-        .doc();
+        .collection('messageBatches')
+        .doc(batchId);
 
-    batch.set(msgRef, message.toFirestore());
+    // Generate a unique ID for the message if not provided
+    final messageId = message.messageId.isEmpty
+        ? _db.collection('dummy').doc().id
+        : message.messageId;
+
+    // Copy the message with the proper ID
+    final msgWithId = message.messageId.isEmpty
+        ? Message(
+            messageId: messageId,
+            senderId: message.senderId,
+            text: message.text,
+            timestamp: message.timestamp,
+            status: message.status,
+          )
+        : message;
+
+    batch.set(
+      batchRef,
+      {
+        'messages': {messageId: msgWithId.toFirestore()},
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
 
     // Update match with last message info
     final matchRef =
         _db.collection(AppConstants.matchesCollection).doc(matchId);
     batch.update(matchRef, {
-      'lastMessage': message.text,
+      'lastMessage': msgWithId.text,
       'lastMessageTime': FieldValue.serverTimestamp(),
       'hasUnread': true,
     });
@@ -338,10 +372,25 @@ class FirestoreService {
     return _db
         .collection(AppConstants.matchesCollection)
         .doc(matchId)
-        .collection(AppConstants.messagesSubcollection)
-        .orderBy('timestamp', descending: true)
+        .collection('messageBatches')
+        .orderBy('updatedAt', descending: true)
+        .limit(3) // Get up to last 3 days/batches of messages to start
         .snapshots()
-        .map((snap) => snap.docs.map(Message.fromFirestore).toList());
+        .map((snap) {
+      final messages = <Message>[];
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final msgsMap = data['messages'] as Map<String, dynamic>? ?? {};
+
+        for (final entry in msgsMap.entries) {
+          final msgData = entry.value as Map<String, dynamic>;
+          messages.add(Message.fromMap(entry.key, msgData));
+        }
+      }
+
+      messages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return messages;
+    });
   }
 
   Future<void> markMessagesRead(String matchId) async {

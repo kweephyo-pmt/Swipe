@@ -40,18 +40,40 @@ class ConversationsScreen extends ConsumerWidget {
             return CustomScrollView(
               slivers: [
                 // ── Header ──────────────────────────────────────────────────
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    child: Text(
-                      'Messages',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 28,
-                        letterSpacing: -0.5,
+                SliverAppBar(
+                  pinned: true,
+                  floating: false,
+                  backgroundColor: AppColors.background,
+                  surfaceTintColor: Colors.transparent,
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Chat',
+                        style: GoogleFonts.inter(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 24,
+                        ),
                       ),
-                    ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.shield_rounded,
+                                color: Colors.white, size: 20),
+                            SizedBox(width: 16),
+                            Icon(Icons.tune_rounded,
+                                color: Colors.white, size: 20),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
@@ -59,26 +81,25 @@ class ConversationsScreen extends ConsumerWidget {
                 if (newMatches.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                       child: Text(
-                        'New Matches',
+                        'New matches',
                         style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          letterSpacing: 0.3,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
                         ),
                       ),
                     ),
                   ),
                   SliverToBoxAdapter(
                     child: SizedBox(
-                      height: 108,
+                      height: 160,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         itemCount: newMatches.length,
-                        itemBuilder: (context, i) => _NewMatchAvatar(
+                        itemBuilder: (context, i) => _NewMatchCard(
                           match: newMatches[i],
                           currentUid: currentUid,
                         ),
@@ -91,35 +112,14 @@ class ConversationsScreen extends ConsumerWidget {
                 if (conversations.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Conversations',
-                            style: GoogleFonts.inter(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceVariant,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${conversations.length}',
-                              style: GoogleFonts.inter(
-                                  color: AppColors.textHint,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ],
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                      child: Text(
+                        'Messages',
+                        style: GoogleFonts.inter(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -127,16 +127,13 @@ class ConversationsScreen extends ConsumerWidget {
 
                 // ── Conversation list ────────────────────────────────────────
                 if (conversations.isNotEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (_, i) => _ConversationTile(
-                          match: conversations[i],
-                          currentUserId: currentUid,
-                        ),
-                        childCount: conversations.length,
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) => _ConversationTile(
+                        match: conversations[i],
+                        currentUserId: currentUid,
                       ),
+                      childCount: conversations.length,
                     ),
                   ),
 
@@ -197,7 +194,7 @@ class ConversationsScreen extends ConsumerWidget {
           Container(
             width: 88,
             height: 88,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.surfaceVariant,
               shape: BoxShape.circle,
             ),
@@ -215,8 +212,8 @@ class ConversationsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Match with someone to start chatting!',
-            style: GoogleFonts.inter(
-                color: AppColors.textSecondary, fontSize: 14),
+            style:
+                GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -226,8 +223,8 @@ class ConversationsScreen extends ConsumerWidget {
 
 // ── New Match Avatar bubble ───────────────────────────────────────────────────
 
-class _NewMatchAvatar extends ConsumerWidget {
-  const _NewMatchAvatar({
+class _NewMatchCard extends ConsumerWidget {
+  const _NewMatchCard({
     required this.match,
     required this.currentUid,
   });
@@ -244,55 +241,53 @@ class _NewMatchAvatar extends ConsumerWidget {
       error: (_, __) => const SizedBox.shrink(),
       data: (user) {
         if (user == null) return const SizedBox.shrink();
+
         return GestureDetector(
           onTap: () => context.push(
             '/chat/${match.matchId}?name=${Uri.encodeComponent(user.name)}&photo=${Uri.encodeComponent(user.firstPhotoUrl)}',
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Gradient ring avatar
+                // Rectangular card with rounded corners
                 Container(
-                  padding: const EdgeInsets.all(2.5),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFFF4458), Color(0xFFFF8E53)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                  width: 90,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.surfaceVariant,
                   ),
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: AppColors.background,
-                      shape: BoxShape.circle,
-                    ),
-                    child: CircleAvatar(
-                      radius: 28,
-                      backgroundColor: AppColors.surfaceVariant,
-                      backgroundImage: user.photoUrls.isNotEmpty
-                          ? CachedNetworkImageProvider(user.firstPhotoUrl)
-                          : null,
-                      child: user.photoUrls.isEmpty
-                          ? const Icon(Icons.person_rounded,
-                              color: AppColors.textHint, size: 26)
-                          : null,
-                    ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: user.photoUrls.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: user.firstPhotoUrl,
+                            fit: BoxFit.cover,
+                          )
+                        : const Icon(Icons.person_rounded,
+                            color: AppColors.textHint, size: 40),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  user.name.split(' ').first,
-                  style: GoogleFonts.inter(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      user.name.split(' ').first,
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.verified_rounded,
+                        color: Color(0xFF00C6FF), size: 14),
+                  ],
                 ),
               ],
             ),
@@ -366,68 +361,75 @@ class _ConversationTile extends ConsumerWidget {
             '/chat/${match.matchId}?name=${Uri.encodeComponent(user.name)}&photo=${Uri.encodeComponent(user.firstPhotoUrl)}',
           ),
           child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(18),
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: AppColors.background,
+              border: Border(
+                  bottom:
+                      BorderSide(color: AppColors.surfaceVariant, width: 1)),
             ),
             child: Row(
               children: [
                 // Avatar
                 CircleAvatar(
-                  radius: 26,
+                  radius: 32,
                   backgroundColor: AppColors.surfaceVariant,
                   backgroundImage: user.photoUrls.isNotEmpty
                       ? CachedNetworkImageProvider(user.firstPhotoUrl)
                       : null,
                   child: user.photoUrls.isEmpty
                       ? const Icon(Icons.person_rounded,
-                          color: AppColors.textHint, size: 24)
+                          color: AppColors.textHint, size: 28)
                       : null,
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 16),
 
                 // Name + preview
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        user.name,
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            user.name,
+                            style: GoogleFonts.inter(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.verified_rounded,
+                              color: Color(0xFF00C6FF), size: 16),
+                        ],
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        match.lastMessage ?? 'Say hello! 👋',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
-                        ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.reply_rounded,
+                            color: AppColors.textSecondary,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              match.lastMessage ?? 'Say hello! 👋',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                color: AppColors.textSecondary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-
-                // Timestamp only — no red dot
-                if (timeStr.isNotEmpty) ...[
-                  const SizedBox(width: 10),
-                  Text(
-                    timeStr,
-                    style: GoogleFonts.inter(
-                      color: AppColors.textHint,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

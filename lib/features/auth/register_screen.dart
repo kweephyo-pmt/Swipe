@@ -56,7 +56,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -67,17 +67,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   children: [
                     IconButton(
                       onPressed: () => context.go('/login'),
-                      icon: Icon(Icons.arrow_back_ios_rounded,
+                      icon: const Icon(Icons.arrow_back_ios_rounded,
                           color: AppColors.textPrimary),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 // Header
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Create Account',
                       style: TextStyle(
                         fontSize: 32,
@@ -85,17 +85,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: 8),
+                    Text(
                       'Join thousands finding their match',
                       style: TextStyle(
                           color: AppColors.textSecondary, fontSize: 15),
                     ),
                   ],
-                )
-                    .animate()
-                    .fadeIn(duration: 500.ms)
-                    .slideX(begin: -0.2),
+                ).animate().fadeIn(duration: 500.ms).slideX(begin: -0.2),
                 const SizedBox(height: 36),
                 Form(
                   key: _formKey,
@@ -104,8 +101,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       TextFormField(
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
-                        style:
-                            TextStyle(color: AppColors.textPrimary),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         decoration: const InputDecoration(
                           hintText: 'Email address',
                           prefixIcon: Icon(Icons.email_rounded,
@@ -121,8 +117,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       TextFormField(
                         controller: _passCtrl,
                         obscureText: _obscurePass,
-                        style:
-                            TextStyle(color: AppColors.textPrimary),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         decoration: InputDecoration(
                           hintText: 'Password',
                           prefixIcon: const Icon(Icons.lock_rounded,
@@ -148,8 +143,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       TextFormField(
                         controller: _confirmPassCtrl,
                         obscureText: _obscurePass,
-                        style:
-                            TextStyle(color: AppColors.textPrimary),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         decoration: const InputDecoration(
                           hintText: 'Confirm Password',
                           prefixIcon: Icon(Icons.lock_rounded,

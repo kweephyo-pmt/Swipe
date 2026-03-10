@@ -6,8 +6,10 @@ import '../services/cloudinary_service.dart';
 import '../services/firestore_service.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
-final firestoreServiceProvider = Provider<FirestoreService>((ref) => FirestoreService());
-final cloudinaryServiceProvider = Provider<CloudinaryService>((ref) => CloudinaryService());
+final firestoreServiceProvider =
+    Provider<FirestoreService>((ref) => FirestoreService());
+final cloudinaryServiceProvider =
+    Provider<CloudinaryService>((ref) => CloudinaryService());
 
 // Stream of Firebase Auth state changes
 final authStateProvider = StreamProvider<User?>((ref) {

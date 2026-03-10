@@ -35,7 +35,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   String? _pronouns;
   String? _height;
 
-  final List<String> _lookingForOptions = ['Long-term partner', 'Long-term, open to short', 'Short-term, open to long', 'Short-term fun', 'New friends', 'Still figuring it out'];
+  final List<String> _lookingForOptions = [
+    'Long-term partner',
+    'Long-term, open to short',
+    'Short-term, open to long',
+    'Short-term fun',
+    'New friends',
+    'Still figuring it out'
+  ];
 
   @override
   void dispose() {
@@ -175,7 +182,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
-                            color: !_isPreview ? AppColors.primary : Colors.transparent,
+                            color: !_isPreview
+                                ? AppColors.primary
+                                : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -183,14 +192,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       child: Text('Edit',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: !_isPreview ? AppColors.primary : AppColors.textHint,
+                              color: !_isPreview
+                                  ? AppColors.primary
+                                  : AppColors.textHint,
                               fontWeight: FontWeight.w700,
                               fontSize: 15)),
                     ),
                   ),
                 ),
-                Container(
-                    width: 1, height: 20, color: const Color(0xFF333333)),
+                Container(width: 1, height: 20, color: const Color(0xFF333333)),
                 Expanded(
                   child: GestureDetector(
                     onTap: () => setState(() => _isPreview = true),
@@ -199,7 +209,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
-                            color: _isPreview ? AppColors.primary : Colors.transparent,
+                            color: _isPreview
+                                ? AppColors.primary
+                                : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -207,7 +219,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       child: Text('Preview',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: _isPreview ? AppColors.primary : AppColors.textHint,
+                              color: _isPreview
+                                  ? AppColors.primary
+                                  : AppColors.textHint,
                               fontWeight: FontWeight.w700,
                               fontSize: 15)),
                     ),
@@ -227,12 +241,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget _buildPreview() {
     final userState = ref.watch(currentUserProvider);
     if (userState.value == null) return const SizedBox.shrink();
-    
+
     // Create a mock user reflecting current unsaved state
     final previewUser = userState.value!.copyWith(
-      name: _nameCtrl.text.trim().isNotEmpty ? _nameCtrl.text.trim() : userState.value!.name,
+      name: _nameCtrl.text.trim().isNotEmpty
+          ? _nameCtrl.text.trim()
+          : userState.value!.name,
       bio: _bioCtrl.text.trim(),
-      photoUrls: _photoUrls.isNotEmpty ? _photoUrls : userState.value!.photoUrls,
+      photoUrls:
+          _photoUrls.isNotEmpty ? _photoUrls : userState.value!.photoUrls,
       lookingFor: _lookingFor,
       minAgePreference: _minAge,
       maxAgePreference: _maxAge,
@@ -260,31 +277,38 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ..._buildPromptsSection(),
           const SizedBox(height: 32),
           ..._buildMockSection(
-              'INTERESTS',
-              _interests.isEmpty ? 'Add interests' : _interests.join(', '),
-              () => _editInterests(),
+            'INTERESTS',
+            _interests.isEmpty ? 'Add interests' : _interests.join(', '),
+            () => _editInterests(),
           ),
           const SizedBox(height: 32),
           ..._buildMockSectionWithIcon(
-              'PRONOUNS', Icons.person_outline_rounded,
-              _pronouns ?? 'Add pronouns',
-              _pronouns == null ? 'Add' : '',
-              () => _editField('Pronouns', _pronouns, ['he/him', 'she/her', 'they/them'], (val) => setState(() => _pronouns = val)),
+            'PRONOUNS',
+            Icons.person_outline_rounded,
+            _pronouns ?? 'Add pronouns',
+            _pronouns == null ? 'Add' : '',
+            () => _editField(
+                'Pronouns',
+                _pronouns,
+                ['he/him', 'she/her', 'they/them'],
+                (val) => setState(() => _pronouns = val)),
           ),
           const SizedBox(height: 32),
           ..._buildMockSectionWithIcon(
-              'HEIGHT', Icons.straighten_rounded,
-              _height ?? 'Add height',
-              _height == null ? 'Add' : '',
-              _showHeightPicker,
+            'HEIGHT',
+            Icons.straighten_rounded,
+            _height ?? 'Add height',
+            _height == null ? 'Add' : '',
+            _showHeightPicker,
           ),
           const SizedBox(height: 32),
           ..._buildMockSectionWithIcon(
-              'RELATIONSHIP GOALS',
-              Icons.visibility_outlined,
-              'Looking for',
-              _lookingFor,
-              () => _editField('Looking for', _lookingFor, _lookingForOptions, (val) => setState(() => _lookingFor = val)),
+            'RELATIONSHIP GOALS',
+            Icons.visibility_outlined,
+            'Looking for',
+            _lookingFor,
+            () => _editField('Looking for', _lookingFor, _lookingForOptions,
+                (val) => setState(() => _lookingFor = val)),
           ),
           const SizedBox(height: 60), // bottom padding
         ],
@@ -306,7 +330,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       const SizedBox(height: 12),
       const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Text('Add up to 9 photos. Use prompts to share your personality.',
+        child: Text(
+            'Add up to 9 photos. Use prompts to share your personality.',
             style: TextStyle(
                 color: AppColors.textSecondary, fontSize: 14, height: 1.4)),
       ),
@@ -425,8 +450,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
-              counterStyle:
-                  TextStyle(color: AppColors.textHint, fontSize: 12),
+              counterStyle: TextStyle(color: AppColors.textHint, fontSize: 12),
             ),
           ),
         ),
@@ -490,8 +514,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             fontSize: 16)),
                     SizedBox(height: 4),
                     Text('Answer prompt',
-                        style: TextStyle(
-                            color: AppColors.textHint, fontSize: 14)),
+                        style:
+                            TextStyle(color: AppColors.textHint, fontSize: 14)),
                   ],
                 ),
               ),
@@ -518,7 +542,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     ];
   }
 
-  List<Widget> _buildMockSection(String title, String content, VoidCallback onTap) {
+  List<Widget> _buildMockSection(
+      String title, String content, VoidCallback onTap) {
     return [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -551,7 +576,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           height: 1.4)),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textHint),
+                const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textHint),
               ],
             ),
           ),
@@ -560,8 +586,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     ];
   }
 
-  List<Widget> _buildMockSectionWithIcon(
-      String title, IconData icon, String label, String actionText, VoidCallback? onTap) {
+  List<Widget> _buildMockSectionWithIcon(String title, IconData icon,
+      String label, String actionText, VoidCallback? onTap) {
     return [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -598,7 +624,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   Text(actionText,
                       style: const TextStyle(
                           color: AppColors.textHint, fontSize: 14)),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textHint),
+                const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textHint),
               ],
             ),
           ),
@@ -625,7 +652,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _editInterests() async {
-    final availableInterests = ['PlayStation', 'Badminton', 'Mala', 'Korean dramas', 'NFTs', 'Grilled pork', 'Instagram', 'Investing', 'Netflix', 'BBQ', 'Reading', 'Travel', 'Coffee', 'Gym'];
+    final availableInterests = [
+      'PlayStation',
+      'Badminton',
+      'Mala',
+      'Korean dramas',
+      'NFTs',
+      'Grilled pork',
+      'Instagram',
+      'Investing',
+      'Netflix',
+      'BBQ',
+      'Reading',
+      'Travel',
+      'Coffee',
+      'Gym'
+    ];
     List<String> currentSelected = List.from(_interests);
 
     await showModalBottomSheet(
@@ -643,7 +685,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Select Interests', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Select Interests',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
@@ -663,15 +709,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary : AppColors.surfaceVariant,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.surfaceVariant,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           interest,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : AppColors.textPrimary,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -687,13 +738,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
                     onPressed: () {
                       setState(() => _interests = currentSelected);
                       Navigator.pop(ctx);
                     },
-                    child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text('Save',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
                 SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
@@ -705,7 +758,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  Future<void> _editField(String title, String? initialValue, List<String> options, Function(String) onSave) async {
+  Future<void> _editField(String title, String? initialValue,
+      List<String> options, Function(String) onSave) async {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -721,19 +775,29 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Select $title', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Select $title',
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
-                  children: options.map((option) => ListTile(
-                    title: Text(option, style: const TextStyle(color: Colors.white)),
-                    trailing: initialValue == option ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
-                    onTap: () {
-                      onSave(option);
-                      Navigator.pop(ctx);
-                    },
-                  )).toList(),
+                  children: options
+                      .map((option) => ListTile(
+                            title: Text(option,
+                                style: const TextStyle(color: Colors.white)),
+                            trailing: initialValue == option
+                                ? const Icon(Icons.check_rounded,
+                                    color: AppColors.primary)
+                                : null,
+                            onTap: () {
+                              onSave(option);
+                              Navigator.pop(ctx);
+                            },
+                          ))
+                      .toList(),
                 ),
               ),
             ),
@@ -776,7 +840,8 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
     } else if (widget.initialHeight != null) {
       isMetric = false;
       try {
-        final matches = RegExp(r'(\d+)\s*ft\s*(\d+)\s*in').firstMatch(widget.initialHeight!);
+        final matches = RegExp(r'(\d+)\s*ft\s*(\d+)\s*in')
+            .firstMatch(widget.initialHeight!);
         if (matches != null) {
           ft = int.parse(matches.group(1)!);
           inch = int.parse(matches.group(2)!);
@@ -844,10 +909,15 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
                       color: Colors.white.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                    child: const Icon(Icons.close_rounded,
+                        color: Colors.white, size: 24),
                   ),
                 ),
-                const Text('Height', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Height',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
                 GestureDetector(
                   onTap: _handleSave,
                   child: Container(
@@ -856,7 +926,8 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check_rounded, color: Colors.black, size: 24),
+                    child: const Icon(Icons.check_rounded,
+                        color: Colors.black, size: 24),
                   ),
                 ),
               ],
@@ -881,7 +952,8 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Height unit', style: TextStyle(color: Colors.white, fontSize: 16)),
+                const Text('Height unit',
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
@@ -901,19 +973,31 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
                               if (ft < 3) ft = 3;
                               if (ft > 8) ft = 8;
                               WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (_ftCtrl.hasClients) _ftCtrl.jumpToItem(ft - 3);
-                                if (_inCtrl.hasClients) _inCtrl.jumpToItem(inch);
+                                if (_ftCtrl.hasClients) {
+                                  _ftCtrl.jumpToItem(ft - 3);
+                                }
+                                if (_inCtrl.hasClients) {
+                                  _inCtrl.jumpToItem(inch);
+                                }
                               });
                             });
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: !isMetric ? Colors.white.withOpacity(0.25) : Colors.transparent,
+                            color: !isMetric
+                                ? Colors.white.withOpacity(0.25)
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text('ft/in', style: TextStyle(color: !isMetric ? Colors.white : Colors.white70, fontWeight: FontWeight.bold, fontSize: 14)),
+                          child: Text('ft/in',
+                              style: TextStyle(
+                                  color:
+                                      !isMetric ? Colors.white : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14)),
                         ),
                       ),
                       GestureDetector(
@@ -926,18 +1010,28 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
                               if (cm < 90) cm = 90;
                               if (cm > 242) cm = 242;
                               WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (_cmCtrl.hasClients) _cmCtrl.jumpToItem(cm - 90);
+                                if (_cmCtrl.hasClients) {
+                                  _cmCtrl.jumpToItem(cm - 90);
+                                }
                               });
                             });
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isMetric ? Colors.white.withOpacity(0.25) : Colors.transparent,
+                            color: isMetric
+                                ? Colors.white.withOpacity(0.25)
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text('cm', style: TextStyle(color: isMetric ? Colors.white : Colors.white70, fontWeight: FontWeight.bold, fontSize: 14)),
+                          child: Text('cm',
+                              style: TextStyle(
+                                  color:
+                                      isMetric ? Colors.white : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14)),
                         ),
                       ),
                     ],
@@ -948,7 +1042,11 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
           ),
           const Divider(color: Colors.white12, height: 1),
           Padding(
-            padding: EdgeInsets.only(top: 16, bottom: MediaQuery.of(context).padding.bottom + 16, left: 24, right: 24),
+            padding: EdgeInsets.only(
+                top: 16,
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+                left: 24,
+                right: 24),
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -957,9 +1055,12 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white24, width: 1.5),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
                 ),
-                child: const Text('Remove height', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text('Remove height',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
@@ -992,7 +1093,10 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
                 selectionOverlay: const SizedBox(),
                 onSelectedItemChanged: (i) => ft = i + 3,
                 childCount: 6,
-                itemBuilder: (ctx, i) => Center(child: Text('${i + 3} ft', style: const TextStyle(color: Colors.white, fontSize: 20))),
+                itemBuilder: (ctx, i) => Center(
+                    child: Text('${i + 3} ft',
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 20))),
               ),
             ),
             SizedBox(
@@ -1003,7 +1107,10 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
                 selectionOverlay: const SizedBox(),
                 onSelectedItemChanged: (i) => inch = i,
                 childCount: 12,
-                itemBuilder: (ctx, i) => Center(child: Text('$i in', style: const TextStyle(color: Colors.white, fontSize: 20))),
+                itemBuilder: (ctx, i) => Center(
+                    child: Text('$i in',
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 20))),
               ),
             ),
           ],
@@ -1033,11 +1140,12 @@ class _HeightPickerSheetState extends State<_HeightPickerSheet> {
             selectionOverlay: const SizedBox(),
             onSelectedItemChanged: (i) => cm = i + 90,
             childCount: 153,
-            itemBuilder: (ctx, i) => Center(child: Text('${i + 90} cm', style: const TextStyle(color: Colors.white, fontSize: 20))),
+            itemBuilder: (ctx, i) => Center(
+                child: Text('${i + 90} cm',
+                    style: const TextStyle(color: Colors.white, fontSize: 20))),
           ),
         ),
       ],
     );
   }
 }
-

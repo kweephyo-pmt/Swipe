@@ -130,20 +130,20 @@ class LikesSkeletonLoader extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       slivers: [
         // Header skeleton
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: Row(
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ShimmerBox(width: 140, height: 28, borderRadius: 8),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     ShimmerBox(width: 100, height: 14, borderRadius: 6),
                   ],
                 ),
-                const Spacer(),
+                Spacer(),
                 ShimmerBox(width: 80, height: 32, borderRadius: 20),
               ],
             ),
@@ -241,9 +241,9 @@ class ConversationsSkeletonLoader extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       slivers: [
         // "New Matches" heading
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: ShimmerBox(width: 100, height: 18, borderRadius: 6),
           ),
         ),
@@ -271,7 +271,7 @@ class ConversationsSkeletonLoader extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    ShimmerBox(width: 44, height: 10, borderRadius: 4),
+                    const ShimmerBox(width: 44, height: 10, borderRadius: 4),
                   ],
                 ),
               ),
@@ -281,12 +281,15 @@ class ConversationsSkeletonLoader extends StatelessWidget {
         // Divider
         const SliverToBoxAdapter(
           child: Divider(
-              color: AppColors.surfaceVariant, height: 16, indent: 16, endIndent: 16),
+              color: AppColors.surfaceVariant,
+              height: 16,
+              indent: 16,
+              endIndent: 16),
         ),
         // "Messages" heading
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
             child: ShimmerBox(width: 80, height: 18, borderRadius: 6),
           ),
         ),
@@ -308,18 +311,18 @@ class ConversationsSkeletonLoader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ShimmerBox(width: 120, height: 14, borderRadius: 6),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         ShimmerBox(width: 200, height: 12, borderRadius: 5),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ShimmerBox(width: 40, height: 10, borderRadius: 4),
+                  const ShimmerBox(width: 40, height: 10, borderRadius: 4),
                 ],
               ),
             ),
@@ -360,11 +363,12 @@ class ProfileSkeletonLoader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Bio block
-                ShimmerBox(width: 80, height: 13, borderRadius: 5),
+                const ShimmerBox(width: 80, height: 13, borderRadius: 5),
                 const SizedBox(height: 10),
-                ShimmerBox(width: double.infinity, height: 16, borderRadius: 6),
+                const ShimmerBox(
+                    width: double.infinity, height: 16, borderRadius: 6),
                 const SizedBox(height: 6),
-                ShimmerBox(width: 220, height: 16, borderRadius: 6),
+                const ShimmerBox(width: 220, height: 16, borderRadius: 6),
                 const SizedBox(height: 24),
 
                 // Info card skeleton
@@ -376,37 +380,52 @@ class ProfileSkeletonLoader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Column(
-                      children: List.generate(3, (i) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44, height: 44,
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceVariant,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(height: 12, width: 60,
-                                    decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: BorderRadius.circular(5))),
-                                const SizedBox(height: 6),
-                                Container(height: 16, width: 100,
-                                    decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: BorderRadius.circular(6))),
-                              ],
-                            ),
-                          ],
-                        ),
-                      )),
+                      children: List.generate(
+                          3,
+                          (i) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surfaceVariant,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            height: 12,
+                                            width: 60,
+                                            decoration: BoxDecoration(
+                                                color: AppColors.surfaceVariant,
+                                                borderRadius:
+                                                    BorderRadius.circular(5))),
+                                        const SizedBox(height: 6),
+                                        Container(
+                                            height: 16,
+                                            width: 100,
+                                            decoration: BoxDecoration(
+                                                color: AppColors.surfaceVariant,
+                                                borderRadius:
+                                                    BorderRadius.circular(6))),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )),
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 32),
-                ShimmerBox(width: 70, height: 13, borderRadius: 5),
+                const ShimmerBox(width: 70, height: 13, borderRadius: 5),
                 const SizedBox(height: 8),
 
                 // Settings card skeleton
@@ -417,23 +436,32 @@ class ProfileSkeletonLoader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Column(
-                      children: List.generate(4, (i) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40, height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceVariant,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Container(height: 16, width: 120,
-                                decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: BorderRadius.circular(6))),
-                          ],
-                        ),
-                      )),
+                      children: List.generate(
+                          4,
+                          (i) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 18),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surfaceVariant,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Container(
+                                        height: 16,
+                                        width: 120,
+                                        decoration: BoxDecoration(
+                                            color: AppColors.surfaceVariant,
+                                            borderRadius:
+                                                BorderRadius.circular(6))),
+                                  ],
+                                ),
+                              )),
                     ),
                   ),
                 ),

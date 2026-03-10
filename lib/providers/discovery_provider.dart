@@ -70,7 +70,7 @@ final discoveryUsersProvider = Provider<AsyncValue<List<AppUser>>>((ref) {
           cos(lat1) * cos(lat2) * sin(dlon / 2) * sin(dlon / 2);
       final c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
-      final earthRadiusKm = 6371.0;
+      const earthRadiusKm = 6371.0;
       final distance = earthRadiusKm * c;
 
       if (distance > currentUser.maxDistanceKm) return false;
@@ -124,7 +124,6 @@ final filteredDiscoveryProvider = Provider<AsyncValue<List<AppUser>>>((ref) {
   return AsyncValue.data(filtered);
 });
 
-
 // ── Liked user for match dialog ───────────────────────────────────────────
 final matchedUserProvider =
     FutureProvider.family<AppUser?, String>((ref, userId) async {
@@ -176,8 +175,7 @@ final receivedLikesUnmatchedProvider =
   if (uid == null || likers.isEmpty) return AsyncValue.data(likers);
 
   final matchedIds = matches.map((m) => m.otherUserId(uid)).toSet();
-  final filtered =
-      likers.where((u) => !matchedIds.contains(u.uid)).toList();
+  final filtered = likers.where((u) => !matchedIds.contains(u.uid)).toList();
 
   return AsyncValue.data(filtered);
 });

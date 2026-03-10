@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/theme/app_theme.dart';
 import '../../models/app_user.dart';
 import '../../providers/service_providers.dart';
 
@@ -109,8 +108,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                       // ── Photo ──────────────────────────────────
                       GestureDetector(
                         onTapUp: (d) {
-                          final half =
-                              MediaQuery.of(context).size.width / 2;
+                          final half = MediaQuery.of(context).size.width / 2;
                           setState(() {
                             if (d.globalPosition.dx < half) {
                               _currentPhotoIndex = (_currentPhotoIndex - 1)
@@ -157,9 +155,8 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                                       children: List.generate(
                                         user.photoUrls.length,
                                         (i) => Container(
-                                          width: i == _currentPhotoIndex
-                                              ? 16
-                                              : 6,
+                                          width:
+                                              i == _currentPhotoIndex ? 16 : 6,
                                           height: 6,
                                           margin: const EdgeInsets.symmetric(
                                               horizontal: 2),
@@ -270,7 +267,8 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                         ),
 
                       SizedBox(
-                          height: showActions ? 100 + bottomPad : bottomPad + 24),
+                          height:
+                              showActions ? 100 + bottomPad : bottomPad + 24),
                     ],
                   ),
                 ),
@@ -282,8 +280,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                     left: 0,
                     right: 0,
                     child: Container(
-                      padding: EdgeInsets.fromLTRB(
-                          40, 16, 40, 20 + bottomPad),
+                      padding: EdgeInsets.fromLTRB(40, 16, 40, 20 + bottomPad),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.bottomCenter,

@@ -46,9 +46,8 @@ class Match {
       'user2Id': user2Id,
       'timestamp': Timestamp.fromDate(timestamp),
       'lastMessage': lastMessage,
-      'lastMessageTime': lastMessageTime != null
-          ? Timestamp.fromDate(lastMessageTime!)
-          : null,
+      'lastMessageTime':
+          lastMessageTime != null ? Timestamp.fromDate(lastMessageTime!) : null,
       'hasUnread': hasUnread,
     };
   }

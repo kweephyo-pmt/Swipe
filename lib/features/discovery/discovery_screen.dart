@@ -1,5 +1,4 @@
 import 'package:appinio_swiper/appinio_swiper.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -77,7 +76,8 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   Widget build(BuildContext context) {
     final discoveryAsync = ref.watch(filteredDiscoveryProvider);
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
-    final superLikedUids = ref.watch(receivedSuperLikesProvider).valueOrNull ?? {};
+    final superLikedUids =
+        ref.watch(receivedSuperLikesProvider).valueOrNull ?? {};
 
     return Stack(
       children: [
@@ -97,7 +97,8 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                     loading: () => const DiscoverySkeletonLoader(),
                     error: (e, _) => Center(
                       child: Text('Error: $e',
-                          style: TextStyle(color: AppColors.textSecondary)),
+                          style:
+                              const TextStyle(color: AppColors.textSecondary)),
                     ),
                     data: (users) {
                       // Buffer the incoming real-time stream into our local state.
@@ -109,10 +110,11 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                         // Check if an external action (e.g., swiping on "Likes You" page)
                         // removed users from the stream that we haven't swiped locally.
                         final streamUids = users.map((u) => u.uid).toSet();
-                        final externallyRemoved = _users.where((u) => 
-                            !streamUids.contains(u.uid) && 
-                            !_locallySwipedUids.contains(u.uid)
-                        ).toList();
+                        final externallyRemoved = _users
+                            .where((u) =>
+                                !streamUids.contains(u.uid) &&
+                                !_locallySwipedUids.contains(u.uid))
+                            .toList();
 
                         if (externallyRemoved.isNotEmpty) {
                           // A user was swiped externally! Force a deck reset so they disappear.
@@ -127,15 +129,18 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                         } else {
                           bool existingUpdated = false;
                           for (int i = 0; i < _users.length; i++) {
-                            final idx = users.indexWhere((u) => u.uid == _users[i].uid);
+                            final idx =
+                                users.indexWhere((u) => u.uid == _users[i].uid);
                             if (idx != -1) {
                               final streamUser = users[idx];
                               // Instantly reflect real-time profile edits for users currently in the deck
                               if (_users[i].name != streamUser.name ||
                                   _users[i].bio != streamUser.bio ||
                                   _users[i].age != streamUser.age ||
-                                  _users[i].locationName != streamUser.locationName ||
-                                  _users[i].photoUrls.join(',') != streamUser.photoUrls.join(',')) {
+                                  _users[i].locationName !=
+                                      streamUser.locationName ||
+                                  _users[i].photoUrls.join(',') !=
+                                      streamUser.photoUrls.join(',')) {
                                 _users[i] = streamUser;
                                 existingUpdated = true;
                               }
@@ -148,12 +153,14 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                               .toList();
 
                           if (newUsers.isNotEmpty || existingUpdated) {
-                            // Allow new or updated real-time users to slide into the deck 
+                            // Allow new or updated real-time users to slide into the deck
                             // or refresh existing visible cards
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (mounted) {
                                 setState(() {
-                                  if (newUsers.isNotEmpty) _users.addAll(newUsers);
+                                  if (newUsers.isNotEmpty) {
+                                    _users.addAll(newUsers);
+                                  }
                                 });
                               }
                             });
@@ -174,6 +181,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                               cardBuilder: (context, index) {
                                 final u = _users[index];
                                 return SwipeCard(
+                                  key: ValueKey(u.uid),
                                   user: u,
                                   currentUser: currentUser,
                                   isSuperLiked: superLikedUids.contains(u.uid),
@@ -197,11 +205,22 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                                   }
                                 }
 
-                                // ── Intercept super likes for free users ──
-                                if (action == 'superLike' && !(currentUser?.isPremium ?? false)) {
-                                  _swiperController.unswipe();
-                                  context.push('/premium');
-                                  return;
+                                // ── Intercept super likes if no count left ──
+                                if (action == 'superLike') {
+                                  final isPremium =
+                                      currentUser?.isPremium ?? false;
+                                  final count = isPremium
+                                      ? currentUser!.superLikesCount
+                                      : 0;
+                                  if (count <= 0) {
+                                    _swiperController.unswipe();
+                                    if (isPremium) {
+                                      context.push('/buy-super-likes');
+                                    } else {
+                                      context.push('/premium');
+                                    }
+                                    return;
+                                  }
                                 }
 
                                 _handleSwipe(swiped, action);
@@ -255,19 +274,20 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
           // Left: Filter Icon
           GestureDetector(
             onTap: _showFilterSheet,
-            child: const Icon(Icons.tune_rounded, color: AppColors.textPrimary, size: 26),
+            child: const Icon(Icons.tune_rounded,
+                color: AppColors.textPrimary, size: 26),
           ),
           const Spacer(),
           // Right: Lightning
           GestureDetector(
             onTap: () {},
-            child: const Icon(Icons.flash_on_rounded, color: Color(0xFFA334FA), size: 28),
+            child: const Icon(Icons.flash_on_rounded,
+                color: Color(0xFFA334FA), size: 28),
           ),
         ],
       ),
     ).animate().fadeIn(duration: 200.ms);
   }
-
 
   Widget _buildActionButtons(AppUser? currentUser) {
     return Padding(
@@ -296,8 +316,14 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
           // Super Like
           _ActionButton(
             onTap: () {
-              if (!(currentUser?.isPremium ?? false)) {
-                context.push('/premium');
+              final isPremium = currentUser?.isPremium ?? false;
+              final count = isPremium ? currentUser!.superLikesCount : 0;
+              if (count <= 0) {
+                if (isPremium) {
+                  context.push('/buy-super-likes');
+                } else {
+                  context.push('/premium');
+                }
               } else {
                 _swipeUp();
               }
@@ -356,8 +382,8 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
           const SizedBox(height: 8),
           Text(
             'Check back later or expand\nyour discovery settings',
-            style: GoogleFonts.inter(
-                color: AppColors.textSecondary, fontSize: 14),
+            style:
+                GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -488,8 +514,6 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
-
-
 
 // ── Filter sheet ──────────────────────────────────────────────────────────────
 
@@ -623,7 +647,11 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
             ),
           ),
 
-          const Divider(color: AppColors.surfaceVariant, height: 24, indent: 24, endIndent: 24),
+          const Divider(
+              color: AppColors.surfaceVariant,
+              height: 24,
+              indent: 24,
+              endIndent: 24),
 
           // ── Maximum Distance ────────────────────────────────────
           Padding(

@@ -11,8 +11,10 @@ import '../../features/home/home_screen.dart';
 import '../../features/onboarding/onboarding_flow.dart';
 import '../../features/premium/likes_screen.dart';
 import '../../features/premium/premium_screen.dart';
+import '../../features/premium/buy_super_likes_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/profile/settings_screen.dart';
 import '../../providers/service_providers.dart';
 import '../../providers/user_provider.dart';
 
@@ -132,6 +134,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/premium',
         builder: (context, state) => const PremiumScreen(),
+      ),
+      GoRoute(
+        path: '/buy-super-likes',
+        builder: (context, state) => const BuySuperLikesScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

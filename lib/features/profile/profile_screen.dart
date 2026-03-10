@@ -1,17 +1,11 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
-import '../../providers/service_providers.dart';
+import '../../models/app_user.dart';
 import '../../providers/user_provider.dart';
 import '../shared/skeleton_widgets.dart';
 
@@ -23,307 +17,354 @@ class ProfileScreen extends ConsumerWidget {
     final userAsync = ref.watch(currentUserProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.black, // Dark background
       body: userAsync.when(
         loading: () => const ProfileSkeletonLoader(),
-        error: (e, _) =>
-            Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text('Error: $e')),
         data: (user) {
           if (user == null) {
             return const Center(child: Text('Not logged in'));
           }
-          return CustomScrollView(
-            slivers: [
-              // App bar with profile photo
-              SliverAppBar(
-                backgroundColor: AppColors.background,
-                expandedHeight: 360,
-                pinned: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      user.photoUrls.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: user.firstPhotoUrl,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(color: AppColors.surfaceVariant),
-                      const DecoratedBox(
-                          decoration: BoxDecoration(
-                              gradient: AppColors.cardGradient)),
-                      Positioned(
-                        left: 20,
-                        bottom: 24,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${user.name}, ${user.age}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            if (user.locationName != null)
-                              Row(children: [
-                                Icon(Icons.location_on_rounded,
-                                    color: Colors.white70, size: 14),
-                                const SizedBox(width: 4),
-                                Text(user.locationName!,
-                                    style: const TextStyle(
-                                        color: Colors.white70)),
-                              ]),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: () => context.push('/edit-profile'),
-                    icon: Container(
-                      padding: EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.black38,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.edit_rounded,
-                          color: Colors.white, size: 18),
-                    ),
-                  ),
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(context, user, ref),
+                  const SizedBox(height: 24),
+                  _buildInventoryRow(user),
+                  const SizedBox(height: 16),
+                  _buildFeaturesList(),
+                  const SizedBox(height: 100), // Bottom padding
                 ],
               ),
-
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Bio
-                      if (user.bio.isNotEmpty) ...[
-                        const Text('About me',
-                            style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 8),
-                        Text(user.bio,
-                            style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 16,
-                                height: 1.5)),
-                        const SizedBox(height: 24),
-                      ],
-
-                      // Info tiles in a single card
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.surfaceVariant, width: 1),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            _InfoTile(
-                              icon: Icons.cake_rounded,
-                              label: 'Birthday',
-                              value: '${user.birthday.day}/${user.birthday.month}/${user.birthday.year}',
-                            ),
-                            const Divider(color: AppColors.surfaceVariant, height: 24),
-                            _InfoTile(
-                              icon: Icons.people_rounded,
-                              label: 'Gender',
-                              value: user.gender,
-                            ),
-                            const Divider(color: AppColors.surfaceVariant, height: 24),
-                            _InfoTile(
-                              icon: Icons.favorite_rounded,
-                              label: 'Interested in',
-                              value: user.interestedIn,
-                            ),
-                          ],
-                        ),
-                        ).animate().fadeIn(duration: 200.ms),
-
-                      const SizedBox(height: 32),
-                      Text('Settings',
-                          style: GoogleFonts.inter(
-                              color: AppColors.textSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-
-                      // Settings grouped card
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.surfaceVariant, width: 1),
-                        ),
-                        child: Column(
-                          children: [
-                            _SettingsTile(
-                              icon: Icons.edit_rounded,
-                              label: 'Edit Profile',
-                              onTap: () => context.push('/edit-profile'),
-                            ),
-                            const Divider(color: AppColors.surfaceVariant, height: 1, indent: 56),
-                            _SettingsTile(
-                              icon: Icons.notifications_rounded,
-                              label: 'Notifications',
-                              onTap: () {},
-                            ),
-                            const Divider(color: AppColors.surfaceVariant, height: 1, indent: 56),
-                            _SettingsTile(
-                              icon: Icons.privacy_tip_rounded,
-                              label: 'Privacy',
-                              onTap: () {},
-                            ),
-                            const Divider(color: AppColors.surfaceVariant, height: 1, indent: 56),
-                            _SettingsTile(
-                              icon: Icons.help_rounded,
-                              label: 'Help & Support',
-                              onTap: () {},
-                            ),
-                          ],
-                        ),
-                        ).animate().fadeIn(duration: 200.ms),
-
-                      const SizedBox(height: 24),
-
-                      // Danger zone card
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.surfaceVariant, width: 1),
-                        ),
-                        child: _SettingsTile(
-                          icon: Icons.logout_rounded,
-                          label: 'Sign Out',
-                          color: AppColors.dislike,
-                          onTap: () => _signOut(context, ref),
-                        ),
-                        ).animate().fadeIn(duration: 200.ms),
-
-                      const SizedBox(height: 120), // Padding for modern floating bottom map
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           );
         },
       ),
     );
   }
 
-  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Sign Out',
-                  style: TextStyle(color: AppColors.dislike))),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      // Just sign out — GoRouter's auth guard will automatically
-      // redirect to /login when the auth state stream changes.
-      await ref.read(authServiceProvider).signOut();
-    }
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile(
-      {required this.icon, required this.label, required this.value});
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppUser user, WidgetRef ref) {
     return Row(
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 22),
+        // Avatar
+        CircleAvatar(
+          radius: 36,
+          backgroundColor: Colors.grey[900],
+          backgroundImage: user.photoUrls.isNotEmpty
+              ? CachedNetworkImageProvider(user.firstPhotoUrl)
+              : null,
+          child: user.photoUrls.isEmpty
+              ? const Icon(Icons.person, color: Colors.white, size: 36)
+              : null,
         ),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: GoogleFonts.inter(
-                    color: AppColors.textHint, fontSize: 13, fontWeight: FontWeight.w500)),
-            Text(value,
-                style: GoogleFonts.inter(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600)),
-          ],
+        // Name & Edit Profile
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    user.name,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => context.push('/edit-profile'),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.edit_rounded,
+                          color: Colors.black, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Edit profile',
+                        style: GoogleFonts.inter(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Settings Button
+        GestureDetector(
+          onTap: () => context.push('/settings'),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.settings_rounded,
+                color: Colors.white, size: 24),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInventoryRow(AppUser user) {
+    int superLikesCount = user.isPremium ? user.superLikesCount : 0;
+    if (superLikesCount < 0) superLikesCount = 0; // Prevent negative display
+
+    return Row(
+      children: [
+        Expanded(
+          child: _InventoryCard(
+            icon: Icons.star_rounded,
+            iconColor: const Color(0xFF00C6FF),
+            title: 'Super Like${superLikesCount == 1 ? '' : 's'}',
+            count: superLikesCount,
+          ),
+        ),
+        const SizedBox(width: 12),
+        const Expanded(
+          child: _InventoryCard(
+            icon: Icons.bolt_rounded,
+            iconColor: Color(0xFFD32BE8),
+            title: 'My Boosts',
+            subtitle: 'GET MORE',
+            subtitleColor: Color(0xFFD32BE8),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _InventoryCard(
+            icon: Icons.fireplace_rounded,
+            iconColor: const Color(0xFFFFB000),
+            title: 'My Swipe Gold™',
+            subtitle: user.isPremium ? 'ACTIVE' : null,
+            subtitleColor: const Color(0xFFFFB000),
+            showPlus: !user.isPremium,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeaturesList() {
+    return Column(
+      children: [
+        _FeatureButton(
+          icon: Icons.verified_user_rounded,
+          iconColor: const Color(0xFF00C6FF),
+          title: 'Verify your profile',
+          subtitle: 'Get a blue checkmark to stand out',
+          onTap: () {},
+        ),
+        const SizedBox(height: 12),
+        _FeatureButton(
+          icon: Icons.visibility_off_rounded,
+          iconColor: const Color(0xFFD32BE8),
+          title: 'Incognito Mode',
+          subtitle: 'Only be seen by those you like',
+          onTap: () {},
+        ),
+        const SizedBox(height: 12),
+        _FeatureButton(
+          icon: Icons.shield_rounded,
+          iconColor: const Color(0xFFFFB000),
+          title: 'Safety measures',
+          subtitle: 'Tools and guides for a safe experience',
+          onTap: () {},
         ),
       ],
     );
   }
 }
 
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile(
-      {required this.icon,
-      required this.label,
-      required this.onTap,
-      this.color});
+class _InventoryCard extends StatelessWidget {
+  const _InventoryCard({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.count,
+    this.subtitle,
+    this.subtitleColor,
+    this.showPlus = true,
+  });
+
   final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final Color? color;
+  final Color iconColor;
+  final String title;
+  final int? count;
+  final String? subtitle;
+  final Color? subtitleColor;
+  final bool showPlus;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Stack(
+      children: [
+        Container(
+          height: 110,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.surfaceVariant, width: 1),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: iconColor, size: 30),
+              const SizedBox(height: 8),
+              if (count != null)
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    text: '$count ',
+                    style: GoogleFonts.inter(
+                      color: iconColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: title,
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 13,
+                  ),
+                ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle!,
+                  style: GoogleFonts.inter(
+                    color: subtitleColor ?? Colors.white54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        // Plus Badge
+        if (showPlus)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: const Icon(Icons.add, color: Colors.white54, size: 14),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _FeatureButton extends StatelessWidget {
+  const _FeatureButton({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
       onTap: onTap,
-      leading: Container(
-        width: 40,
-        height: 40,
+      child: Container(
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: (color ?? AppColors.textSecondary).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.surfaceVariant, width: 1),
         ),
-        child: Icon(icon, color: color ?? AppColors.textSecondary, size: 20),
-      ),
-      title: Text(
-        label,
-        style: GoogleFonts.inter(
-          color: color ?? AppColors.textPrimary,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      color: Colors.white54,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded,
+                color: Colors.white54, size: 24),
+          ],
         ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded,
-          size: 14, color: AppColors.textHint),
     );
   }
 }

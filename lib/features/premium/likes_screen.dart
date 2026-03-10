@@ -74,6 +74,51 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
     }
   }
 
+  Future<void> _superLikeBack(AppUser liker) async {
+    final currentUser = ref.read(currentUserProvider).valueOrNull;
+    if (currentUser == null) return;
+
+    final isPremium = currentUser.isPremium;
+    final count = isPremium ? currentUser.superLikesCount : 0;
+    if (count <= 0) {
+      if (isPremium) {
+        context.push('/buy-super-likes');
+      } else {
+        context.push('/premium');
+      }
+      return;
+    }
+
+    final svc = ref.read(firestoreServiceProvider);
+
+    await svc.recordLike(
+      fromUserId: currentUser.uid,
+      toUserId: liker.uid,
+      action: 'superLike',
+    );
+
+    final stillLikesUs = await svc.checkMutualLike(
+      user1Id: currentUser.uid,
+      user2Id: liker.uid,
+    );
+
+    if (!stillLikesUs) {
+      return;
+    }
+
+    final matchId = await svc.createMatch(
+      user1Id: currentUser.uid,
+      user2Id: liker.uid,
+    );
+
+    if (mounted) {
+      setState(() {
+        _matchedUser = liker;
+        _matchedMatchId = matchId;
+      });
+    }
+  }
+
   Future<void> _pass(AppUser liker) async {
     final currentUser = ref.read(currentUserProvider).valueOrNull;
     if (currentUser == null) return;
@@ -81,17 +126,18 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
     // recordLike(dislike) removes liker from received_likes;
     // StreamProvider picks up the change automatically
     await ref.read(firestoreServiceProvider).recordLike(
-      fromUserId: currentUser.uid,
-      toUserId: liker.uid,
-      action: 'dislike',
-    );
+          fromUserId: currentUser.uid,
+          toUserId: liker.uid,
+          action: 'dislike',
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final isPremium = currentUser?.isPremium ?? false;
-    final receivedCount = ref.watch(receivedLikesUnmatchedProvider).valueOrNull?.length ?? 0;
+    final receivedCount =
+        ref.watch(receivedLikesUnmatchedProvider).valueOrNull?.length ?? 0;
 
     AsyncValue<List<AppUser>> currentListValue;
     switch (_selectedTabIndex) {
@@ -116,7 +162,7 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
               loading: () => const LikesSkeletonLoader(),
               error: (e, _) => Center(
                 child: Text('Error: $e',
-                    style: TextStyle(color: AppColors.textSecondary)),
+                    style: const TextStyle(color: AppColors.textSecondary)),
               ),
               data: (usersList) {
                 return CustomScrollView(
@@ -127,20 +173,31 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
                         isPremium: isPremium,
                         receivedCount: receivedCount,
                         selectedIndex: _selectedTabIndex,
-                        onTabChanged: (idx) => setState(() => _selectedTabIndex = idx),
+                        onTabChanged: (idx) =>
+                            setState(() => _selectedTabIndex = idx),
                       ).animate().fadeIn(duration: 200.ms),
                     ),
 
                     if (usersList.isEmpty)
                       SliverFillRemaining(
-                        child: _EmptyState(isPremium: isPremium, tabIndex: _selectedTabIndex),
+                        child: _EmptyState(
+                            isPremium: isPremium, tabIndex: _selectedTabIndex),
                       )
                     else ...[
                       // Non-premium upgrade banner removed; using floating action button instead
 
                       // ── Grid ────────────────────────────────────
                       SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 124),
+                        padding: EdgeInsets.fromLTRB(
+                          12,
+                          12,
+                          12,
+                          (!isPremium &&
+                                  _selectedTabIndex == 0 &&
+                                  receivedCount > 0)
+                              ? 240
+                              : 130,
+                        ),
                         sliver: SliverGrid(
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
@@ -154,9 +211,17 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
                               user: usersList[i],
                               isPremium: isPremium,
                               index: i,
-                              onLike: _selectedTabIndex == 1 ? null : () => _likeBack(usersList[i]),
-                              onPass: _selectedTabIndex == 1 ? null : () => _pass(usersList[i]),
-                              showFullDetails: _selectedTabIndex != 0, // only require premium on 'Likes You' 
+                              onLike: _selectedTabIndex == 1
+                                  ? null
+                                  : () => _likeBack(usersList[i]),
+                              onPass: _selectedTabIndex == 1
+                                  ? null
+                                  : () => _pass(usersList[i]),
+                              onSuperLike: _selectedTabIndex == 1
+                                  ? null
+                                  : () => _superLikeBack(usersList[i]),
+                              showFullDetails: _selectedTabIndex !=
+                                  0, // only require premium on 'Likes You'
                             ),
                             childCount: usersList.length,
                           ),
@@ -169,27 +234,61 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
             ),
           ),
         ),
-        
+
         // Floating action button correctly positioned above the bottom navbar
-        if (!isPremium && _selectedTabIndex == 0 && receivedCount > 0)
+        if (!isPremium && _selectedTabIndex == 0 && receivedCount > 0) ...[
           Positioned(
             left: 0,
             right: 0,
-            bottom: 104, // Height of bottom nav + padding
+            bottom: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: MediaQuery.of(context).padding.bottom + 104 + 80,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      AppColors.background,
+                      AppColors.background.withOpacity(0.95),
+                      AppColors.background.withOpacity(0.0),
+                    ],
+                    stops: const [0.0, 0.6, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: MediaQuery.of(context).padding.bottom + 104,
             child: Center(
               child: SizedBox(
                 width: 280,
                 height: 48,
                 child: FloatingActionButton.extended(
                   onPressed: () => context.push('/premium'),
-                  backgroundColor: const Color(0xFFE2E4E9),
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  label: Text('Upgrade Premium', style: GoogleFonts.inter(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w700)),
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  focusElevation: 0,
+                  hoverElevation: 0,
+                  highlightElevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24)),
+                  label: Text(
+                    'Upgrade Premium',
+                    style: GoogleFonts.inter(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
+        ],
 
         // ── Match overlay ──────────────────────────────────────────────────
         if (_matchedUser != null && _matchedMatchId != null)
@@ -216,7 +315,7 @@ class _Header extends ConsumerWidget {
     required this.selectedIndex,
     required this.onTabChanged,
   });
-  
+
   final bool isPremium;
   final int receivedCount;
   final int selectedIndex;
@@ -254,7 +353,9 @@ class _Header extends ConsumerWidget {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: selectedIndex == 0 ? Colors.white : Colors.transparent,
+                          color: selectedIndex == 0
+                              ? Colors.white
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -263,7 +364,8 @@ class _Header extends ConsumerWidget {
                     child: Text(
                       '$receivedCount Likes',
                       style: TextStyle(
-                        color: selectedIndex == 0 ? Colors.white : Colors.white54,
+                        color:
+                            selectedIndex == 0 ? Colors.white : Colors.white54,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -280,7 +382,9 @@ class _Header extends ConsumerWidget {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: selectedIndex == 1 ? Colors.white : Colors.transparent,
+                          color: selectedIndex == 1
+                              ? Colors.white
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -289,7 +393,8 @@ class _Header extends ConsumerWidget {
                     child: Text(
                       'Likes Sent',
                       style: TextStyle(
-                        color: selectedIndex == 1 ? Colors.white : Colors.white54,
+                        color:
+                            selectedIndex == 1 ? Colors.white : Colors.white54,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -306,7 +411,9 @@ class _Header extends ConsumerWidget {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: selectedIndex == 2 ? Colors.white : Colors.transparent,
+                          color: selectedIndex == 2
+                              ? Colors.white
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -315,7 +422,8 @@ class _Header extends ConsumerWidget {
                     child: Text(
                       'Top Picks',
                       style: TextStyle(
-                        color: selectedIndex == 2 ? Colors.white : Colors.white54,
+                        color:
+                            selectedIndex == 2 ? Colors.white : Colors.white54,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -332,7 +440,6 @@ class _Header extends ConsumerWidget {
   }
 }
 
-
 // ── Profile card ──────────────────────────────────────────────────────────────
 
 class _LikeCard extends StatelessWidget {
@@ -342,6 +449,7 @@ class _LikeCard extends StatelessWidget {
     required this.index,
     this.onLike,
     this.onPass,
+    this.onSuperLike,
     this.showFullDetails = false,
   });
   final AppUser user;
@@ -349,6 +457,7 @@ class _LikeCard extends StatelessWidget {
   final int index;
   final VoidCallback? onLike;
   final VoidCallback? onPass;
+  final VoidCallback? onSuperLike;
   final bool showFullDetails;
 
   @override
@@ -356,9 +465,8 @@ class _LikeCard extends StatelessWidget {
     final canView = isPremium || showFullDetails;
 
     return GestureDetector(
-      onTap: canView
-          ? () => _openDetail(context)
-          : () => context.push('/premium'),
+      onTap:
+          canView ? () => _openDetail(context) : () => context.push('/premium'),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Stack(
@@ -432,7 +540,11 @@ class _LikeCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 2),
-                        Text('20 hrs left', style: GoogleFonts.inter(color: Colors.white.withOpacity(0.9), fontSize: 11, fontWeight: FontWeight.w600)),
+                        Text('20 hrs left',
+                            style: GoogleFonts.inter(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -443,16 +555,15 @@ class _LikeCard extends StatelessWidget {
                       color: Colors.black.withOpacity(0.5),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.star_rounded, color: Color(0xFF00C6FF), size: 18),
+                    child: const Icon(Icons.star_rounded,
+                        color: Color(0xFF00C6FF), size: 18),
                   ),
                 ],
               ),
             ),
           ],
         ),
-      )
-          .animate()
-          .fadeIn(duration: 200.ms),
+      ).animate().fadeIn(duration: 200.ms),
     );
   }
 
@@ -463,13 +574,12 @@ class _LikeCard extends StatelessWidget {
           user: user,
           onLike: onLike,
           onPass: onPass,
+          onSuperLike: onSuperLike,
         ),
       ),
     );
   }
 }
-
-
 
 // ── Upgrade banner ────────────────────────────────────────────────────────────
 
@@ -489,8 +599,7 @@ class _UpgradeBanner extends StatelessWidget {
             colors: [Color(0xFF1C1430), Color(0xFF0F2A50)],
           ),
           borderRadius: BorderRadius.circular(14),
-          border:
-              Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
+          border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
         ),
         child: Row(
           children: [
@@ -515,8 +624,7 @@ class _UpgradeBanner extends StatelessWidget {
               ),
             ),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                     colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
@@ -534,7 +642,6 @@ class _UpgradeBanner extends StatelessWidget {
     );
   }
 }
-
 
 // ── Empty state ───────────────────────────────────────────────────────────────
 
@@ -563,35 +670,35 @@ class _EmptyState extends StatelessWidget {
               child: const Icon(Icons.favorite_border_rounded,
                   color: AppColors.primary, size: 48),
             ).animate().scale(curve: Curves.easeOutCubic, duration: 600.ms),
-
             const SizedBox(height: 24),
-
-            Text(tabIndex == 0 ? 'No likes yet' : tabIndex == 1 ? 'No sent likes' : 'No top picks today',
+            Text(
+                tabIndex == 0
+                    ? 'No likes yet'
+                    : tabIndex == 1
+                        ? 'No sent likes'
+                        : 'No top picks today',
                 style: GoogleFonts.inter(
                     color: AppColors.textPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.w800)),
-
             const SizedBox(height: 8),
-
             Text(
-              tabIndex == 0 
-                  ? 'Keep swiping — your likes\nwill show up here ✨' 
-                  : tabIndex == 1 
+              tabIndex == 0
+                  ? 'Keep swiping — your likes\nwill show up here ✨'
+                  : tabIndex == 1
                       ? "Users you like will appear here"
                       : "Check back later for more picks",
               style: GoogleFonts.inter(
                   color: AppColors.textSecondary, fontSize: 14),
               textAlign: TextAlign.center,
             ),
-
             if (!isPremium) ...[
               const SizedBox(height: 28),
               GestureDetector(
                 onTap: () => context.push('/premium'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                         colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),

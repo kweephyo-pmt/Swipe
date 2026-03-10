@@ -17,10 +17,18 @@ class AppUser {
   final DateTime createdAt;
   final DateTime lastSeen;
   final bool isOnboardingComplete;
-  final bool isPremium;
+  final bool hasPremiumFlag;
+  final DateTime? premiumEndDate;
   final String? pronouns;
   final String? height;
   final List<String> interests;
+  final int superLikesCount;
+
+  bool get isPremium {
+    if (!hasPremiumFlag) return false;
+    if (premiumEndDate == null) return true;
+    return premiumEndDate!.isAfter(DateTime.now());
+  }
 
   AppUser({
     required this.uid,
@@ -39,10 +47,12 @@ class AppUser {
     required this.createdAt,
     required this.lastSeen,
     this.isOnboardingComplete = false,
-    this.isPremium = false,
+    this.hasPremiumFlag = false,
+    this.premiumEndDate,
     this.pronouns,
     this.height,
     this.interests = const [],
+    this.superLikesCount = 5,
   });
 
   int get age {
@@ -76,10 +86,14 @@ class AppUser {
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       lastSeen: (data['lastSeen'] as Timestamp).toDate(),
       isOnboardingComplete: data['isOnboardingComplete'] ?? false,
-      isPremium: data['isPremium'] ?? false,
+      hasPremiumFlag: data['isPremium'] ?? false,
+      premiumEndDate: data['premiumEndDate'] != null
+          ? (data['premiumEndDate'] as Timestamp).toDate()
+          : null,
       pronouns: data['pronouns'],
       height: data['height'],
       interests: List<String>.from(data['interests'] ?? []),
+      superLikesCount: data['superLikesCount'] ?? 5,
     );
   }
 
@@ -100,10 +114,13 @@ class AppUser {
       'createdAt': Timestamp.fromDate(createdAt),
       'lastSeen': Timestamp.fromDate(lastSeen),
       'isOnboardingComplete': isOnboardingComplete,
-      'isPremium': isPremium,
+      'isPremium': hasPremiumFlag,
+      if (premiumEndDate != null)
+        'premiumEndDate': Timestamp.fromDate(premiumEndDate!),
       'pronouns': pronouns,
       'height': height,
       'interests': interests,
+      'superLikesCount': superLikesCount,
     };
   }
 
@@ -122,10 +139,12 @@ class AppUser {
     int? maxDistanceKm,
     DateTime? lastSeen,
     bool? isOnboardingComplete,
-    bool? isPremium,
+    bool? hasPremiumFlag,
+    DateTime? premiumEndDate,
     String? pronouns,
     String? height,
     List<String>? interests,
+    int? superLikesCount,
   }) {
     return AppUser(
       uid: uid,
@@ -144,10 +163,12 @@ class AppUser {
       createdAt: createdAt,
       lastSeen: lastSeen ?? this.lastSeen,
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
-      isPremium: isPremium ?? this.isPremium,
+      hasPremiumFlag: hasPremiumFlag ?? this.hasPremiumFlag,
+      premiumEndDate: premiumEndDate ?? this.premiumEndDate,
       pronouns: pronouns ?? this.pronouns,
       height: height ?? this.height,
       interests: interests ?? this.interests,
+      superLikesCount: superLikesCount ?? this.superLikesCount,
     );
   }
 }
