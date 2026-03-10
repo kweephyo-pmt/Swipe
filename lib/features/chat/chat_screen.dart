@@ -225,9 +225,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               // More button on the right
               Positioned(
                 right: 12,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Container(
+                child: PopupMenuButton<String>(
+                  color: AppColors.surfaceVariant,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  offset: const Offset(0, 40),
+                  icon: Container(
                     width: 40,
                     height: 40,
                     decoration: const BoxDecoration(
@@ -240,6 +244,83 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                       size: 22,
                     ),
                   ),
+                  onSelected: (value) async {
+                    if (value == 'unmatch') {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: AppColors.surface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          title: Text(
+                            'Unmatch ${widget.otherUserName}?',
+                            style: GoogleFonts.inter(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          content: Text(
+                            'Are you sure you want to unmatch? This action cannot be undone, and your conversation will be deleted forever.',
+                            style: GoogleFonts.inter(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text(
+                                'Unmatch',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.dislike,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        await ref
+                            .read(firestoreServiceProvider)
+                            .unmatch(widget.matchId);
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                        }
+                      }
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'unmatch',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person_remove_rounded,
+                              color: AppColors.dislike, size: 20),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Unmatch',
+                            style: GoogleFonts.inter(
+                              color: AppColors.dislike,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

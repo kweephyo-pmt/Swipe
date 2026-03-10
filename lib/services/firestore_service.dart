@@ -313,6 +313,53 @@ class FirestoreService {
     return controller.stream;
   }
 
+  Future<void> unmatch(String matchId) async {
+    final ids = matchId.split('_');
+    if (ids.length != 2) return;
+    final user1Id = ids[0];
+    final user2Id = ids[1];
+
+    // Delete all messages in the messageBatches subcollection
+    final batchesSnapshot = await _db
+        .collection(AppConstants.matchesCollection)
+        .doc(matchId)
+        .collection('messageBatches')
+        .get();
+
+    for (var doc in batchesSnapshot.docs) {
+      await doc.reference.delete();
+    }
+
+    // Delete the match document
+    await _db.collection(AppConstants.matchesCollection).doc(matchId).delete();
+
+    // Best-effort cleanup of likes & received_likes
+    try {
+      await _db
+          .collection(AppConstants.likesCollection)
+          .doc(user1Id)
+          .update({user2Id: FieldValue.delete()});
+    } catch (_) {}
+    try {
+      await _db
+          .collection(AppConstants.likesCollection)
+          .doc(user2Id)
+          .update({user1Id: FieldValue.delete()});
+    } catch (_) {}
+    try {
+      await _db
+          .collection('received_likes')
+          .doc(user1Id)
+          .update({user2Id: FieldValue.delete()});
+    } catch (_) {}
+    try {
+      await _db
+          .collection('received_likes')
+          .doc(user2Id)
+          .update({user1Id: FieldValue.delete()});
+    } catch (_) {}
+  }
+
   // ── MESSAGES ──────────────────────────────────────────────────────────────
 
   Future<void> sendMessage({

@@ -80,6 +80,5 @@ flutter:
 
 flutter_native_splash:
   color: "#111118"
-  image: "ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon~ios-marketing.png"
   android: true
   ios: true

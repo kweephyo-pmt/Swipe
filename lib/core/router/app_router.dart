@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/app_theme.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/chat/chat_screen.dart';
@@ -16,14 +15,21 @@ import '../../features/premium/buy_super_likes_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/settings_screen.dart';
+import '../../features/splash/splash_screen.dart';
 import '../../providers/service_providers.dart';
 import '../../providers/user_provider.dart';
 
-// Notifies GoRouter to re-evaluate redirect whenever auth or user state changes
+final splashDelayProvider = FutureProvider<void>((ref) async {
+  // Ensure the splash screen shows for at least 2.5 seconds to let the animations play out
+  await Future.delayed(const Duration(milliseconds: 2500));
+});
+
+// Notifies GoRouter to re-evaluate redirect whenever auth, user state, or splash delay changes
 class _RouterNotifier extends ChangeNotifier {
   _RouterNotifier(Ref ref) {
     ref.listen(authStateProvider, (_, __) => notifyListeners());
     ref.listen(currentUserProvider, (_, __) => notifyListeners());
+    ref.listen(splashDelayProvider, (_, __) => notifyListeners());
   }
 }
 
@@ -39,10 +45,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authAsync = ref.read(authStateProvider);
       final userAsync = ref.read(currentUserProvider);
+      final splashAsync = ref.read(splashDelayProvider);
       final loc = state.matchedLocation;
 
-      // Still loading — stay on or redirect to splash
-      if (authAsync.isLoading || userAsync.isLoading) {
+      // Still loading or enforcing minimum splash duration — stay on or redirect to splash
+      if (authAsync.isLoading || userAsync.isLoading || splashAsync.isLoading) {
         return loc == '/splash' ? null : '/splash';
       }
 
@@ -72,16 +79,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/splash',
-        builder: (context, state) => Scaffold(
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.backgroundGradient,
-            ),
-            child: const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-          ),
-        ),
+        builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
         path: '/login',

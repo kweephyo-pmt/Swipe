@@ -194,15 +194,15 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                                 if (prev < 0 || prev >= _users.length) return;
                                 final swiped = _users[prev];
                                 String action = 'dislike';
-                                if (activity is Swipe) {
-                                  final dir = activity.direction;
-                                  if (dir == AxisDirection.right) {
-                                    action = 'like';
-                                  } else if (dir == AxisDirection.left) {
-                                    action = 'dislike';
-                                  } else if (dir == AxisDirection.up) {
-                                    action = 'superLike';
-                                  }
+                                if (activity is! Swipe) return;
+
+                                final dir = activity.direction;
+                                if (dir == AxisDirection.right) {
+                                  action = 'like';
+                                } else if (dir == AxisDirection.left) {
+                                  action = 'dislike';
+                                } else if (dir == AxisDirection.up) {
+                                  action = 'superLike';
                                 }
 
                                 // ── Intercept super likes if no count left ──
