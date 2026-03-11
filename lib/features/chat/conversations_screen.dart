@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:timeago/timeago.dart' as timeago;
+// timeago removed
 
 import '../../core/theme/app_theme.dart';
 import '../../models/match.dart';
@@ -244,7 +244,7 @@ class _NewMatchCard extends ConsumerWidget {
 
         return GestureDetector(
           onTap: () => context.push(
-            '/chat/${match.matchId}?name=${Uri.encodeComponent(user.name)}&photo=${Uri.encodeComponent(user.firstPhotoUrl)}',
+            '/chat/${match.matchId}?name=${Uri.encodeComponent(user.name)}&photo=${Uri.encodeComponent(user.firstPhotoUrl)}&id=${user.uid}',
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -349,16 +349,12 @@ class _ConversationTile extends ConsumerWidget {
       data: (user) {
         if (user == null) return const SizedBox.shrink();
 
-        final timeStr = match.lastMessageTime != null
-            ? timeago.format(match.lastMessageTime!, locale: 'en_short')
-            : '';
-
         final isUnread = match.hasUnread && match.lastMessageSenderId != currentUserId;
         final didISend = match.lastMessageSenderId == currentUserId;
 
         return GestureDetector(
           onTap: () => context.push(
-            '/chat/${match.matchId}?name=${Uri.encodeComponent(user.name)}&photo=${Uri.encodeComponent(user.firstPhotoUrl)}',
+            '/chat/${match.matchId}?name=${Uri.encodeComponent(user.name)}&photo=${Uri.encodeComponent(user.firstPhotoUrl)}&id=${user.uid}',
           ),
           child: Container(
             padding: const EdgeInsets.all(16),

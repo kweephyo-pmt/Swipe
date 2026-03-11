@@ -23,6 +23,8 @@ class DiscoveryScreen extends ConsumerStatefulWidget {
 
 class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   final AppinioSwiperController _swiperController = AppinioSwiperController();
+  final ValueNotifier<Offset> _swipeOffsetNotifier = ValueNotifier(Offset.zero);
+  final ValueNotifier<int> _currentIndexNotifier = ValueNotifier(0);
   AppUser? _matchedUser;
   String? _matchedMatchId;
   List<AppUser> _users = [];
@@ -31,6 +33,8 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   @override
   void dispose() {
     _swiperController.dispose();
+    _swipeOffsetNotifier.dispose();
+    _currentIndexNotifier.dispose();
     super.dispose();
   }
 
@@ -178,19 +182,41 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                             child: AppinioSwiper(
                               controller: _swiperController,
                               cardCount: _users.length,
+                              swipeOptions: const SwipeOptions.all(),
+                              onCardPositionChanged: (position) {
+                                if (mounted) {
+                                  _swipeOffsetNotifier.value = position.offset;
+                                }
+                              },
+                              onSwipeCancelled: (activity) {
+                                if (mounted) {
+                                  _swipeOffsetNotifier.value = Offset.zero;
+                                }
+                              },
                               cardBuilder: (context, index) {
                                 final u = _users[index];
-                                return SwipeCard(
-                                  key: ValueKey(u.uid),
-                                  user: u,
-                                  currentUser: currentUser,
-                                  isSuperLiked: superLikedUids.contains(u.uid),
-                                  onLike: _swipeRight,
-                                  onPass: _swipeLeft,
-                                  onSuperLike: _swipeUp,
+                                return ValueListenableBuilder<int>(
+                                  valueListenable: _currentIndexNotifier,
+                                  builder: (context, currentIndex, _) {
+                                    final isFront = index == currentIndex;
+                                    return SwipeCard(
+                                      key: ValueKey(u.uid),
+                                      user: u,
+                                      currentUser: currentUser,
+                                      isSuperLiked: superLikedUids.contains(u.uid),
+                                      swipeOffsetNotifier: isFront ? _swipeOffsetNotifier : null,
+                                      onLike: _swipeRight,
+                                      onPass: _swipeLeft,
+                                      onSuperLike: _swipeUp,
+                                    );
+                                  },
                                 );
                               },
                               onSwipeEnd: (prev, curr, activity) {
+                                if (mounted) {
+                                  _swipeOffsetNotifier.value = Offset.zero;
+                                  _currentIndexNotifier.value = curr;
+                                }
                                 if (prev < 0 || prev >= _users.length) return;
                                 final swiped = _users[prev];
                                 String action = 'dislike';
@@ -199,7 +225,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                                 final dir = activity.direction;
                                 if (dir == AxisDirection.right) {
                                   action = 'like';
-                                } else if (dir == AxisDirection.left) {
+                                } else if (dir == AxisDirection.left || dir == AxisDirection.down) {
                                   action = 'dislike';
                                 } else if (dir == AxisDirection.up) {
                                   action = 'superLike';
@@ -305,42 +331,78 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
           ).animate().scale(delay: 50.ms, duration: 200.ms),
 
           // Dislike
-          _ActionButton(
-            onTap: _swipeLeft,
-            size: 64,
-            iconSize: 32,
-            color: AppColors.dislike,
-            icon: Icons.close_rounded,
+          ValueListenableBuilder<Offset>(
+            valueListenable: _swipeOffsetNotifier,
+            builder: (context, offset, child) {
+              final isDisliking = offset.dx < -20 || (offset.dy > 20 && offset.dx.abs() < 20);
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                transform: Matrix4.identity()..scale(isDisliking ? 1.15 : 1.0),
+                transformAlignment: Alignment.center,
+                child: _ActionButton(
+                  onTap: _swipeLeft,
+                  size: 64,
+                  iconSize: 32,
+                  color: isDisliking ? Colors.white : AppColors.dislike,
+                  backgroundColor: isDisliking ? AppColors.dislike : const Color(0xFF1E1E24),
+                  icon: Icons.close_rounded,
+                ),
+              );
+            },
           ).animate().scale(delay: 100.ms, duration: 200.ms),
 
           // Super Like
-          _ActionButton(
-            onTap: () {
-              final isPremium = currentUser?.isPremium ?? false;
-              final count = isPremium ? currentUser!.superLikesCount : 0;
-              if (count <= 0) {
-                if (isPremium) {
-                  context.push('/buy-super-likes');
-                } else {
-                  context.push('/premium');
-                }
-              } else {
-                _swipeUp();
-              }
+          ValueListenableBuilder<Offset>(
+            valueListenable: _swipeOffsetNotifier,
+            builder: (context, offset, child) {
+              final isSuperLiking = offset.dy < -20 && offset.dx.abs() < 20;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                transform: Matrix4.identity()..scale(isSuperLiking ? 1.15 : 1.0),
+                transformAlignment: Alignment.center,
+                child: _ActionButton(
+                  onTap: () {
+                    final isPremium = currentUser?.isPremium ?? false;
+                    final count = isPremium ? currentUser!.superLikesCount : 0;
+                    if (count <= 0) {
+                      if (isPremium) {
+                        context.push('/buy-super-likes');
+                      } else {
+                        context.push('/premium');
+                      }
+                    } else {
+                      _swipeUp();
+                    }
+                  },
+                  size: 52,
+                  iconSize: 26,
+                  color: isSuperLiking ? Colors.white : const Color(0xFF00C6FF),
+                  backgroundColor: isSuperLiking ? const Color(0xFF00C6FF) : const Color(0xFF1E1E24),
+                  icon: Icons.star_rounded,
+                ),
+              );
             },
-            size: 52,
-            iconSize: 26,
-            color: const Color(0xFF00C6FF),
-            icon: Icons.star_rounded,
           ).animate().scale(delay: 150.ms, duration: 200.ms),
 
           // Like
-          _ActionButton(
-            onTap: _swipeRight,
-            size: 64,
-            iconSize: 32,
-            color: const Color(0xFF4DED8E),
-            icon: Icons.favorite_rounded,
+          ValueListenableBuilder<Offset>(
+            valueListenable: _swipeOffsetNotifier,
+            builder: (context, offset, child) {
+              final isLiking = offset.dx > 20;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                transform: Matrix4.identity()..scale(isLiking ? 1.15 : 1.0),
+                transformAlignment: Alignment.center,
+                child: _ActionButton(
+                  onTap: _swipeRight,
+                  size: 64,
+                  iconSize: 32,
+                  color: isLiking ? Colors.white : const Color(0xFF4DED8E),
+                  backgroundColor: isLiking ? const Color(0xFF4DED8E) : const Color(0xFF1E1E24),
+                  icon: Icons.favorite_rounded,
+                ),
+              );
+            },
           ).animate().scale(delay: 200.ms, duration: 200.ms),
 
           // Send/Boost (mock)
@@ -480,6 +542,7 @@ class _ActionButton extends StatelessWidget {
     required this.iconSize,
     required this.color,
     required this.icon,
+    this.backgroundColor = const Color(0xFF1E1E24),
   });
 
   final VoidCallback onTap;
@@ -487,6 +550,7 @@ class _ActionButton extends StatelessWidget {
   final double iconSize;
   final Color color;
   final IconData icon;
+  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -496,7 +560,7 @@ class _ActionButton extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E24), // dark card color in reference
+          color: backgroundColor, // Background color can be animating
           shape: BoxShape.circle,
           border: Border.all(color: color.withOpacity(0.3), width: 1.5),
           boxShadow: [

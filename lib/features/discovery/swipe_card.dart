@@ -16,6 +16,7 @@ class SwipeCard extends StatefulWidget {
     this.onLike,
     this.onPass,
     this.onSuperLike,
+    this.swipeOffsetNotifier,
   });
 
   final AppUser user;
@@ -24,6 +25,7 @@ class SwipeCard extends StatefulWidget {
   final VoidCallback? onLike;
   final VoidCallback? onPass;
   final VoidCallback? onSuperLike;
+  final ValueNotifier<Offset>? swipeOffsetNotifier;
 
   @override
   State<SwipeCard> createState() => _SwipeCardState();
@@ -239,6 +241,86 @@ class _SwipeCardState extends State<SwipeCard> {
                 ],
               ),
             ),
+            // ── Dynamic Stamps (Like / Dislike) ────────────────────────
+            if (widget.swipeOffsetNotifier != null)
+              Positioned.fill(
+                child: ValueListenableBuilder<Offset>(
+                  valueListenable: widget.swipeOffsetNotifier!,
+                  builder: (context, offset, child) {
+                    final dx = offset.dx;
+                    final dy = offset.dy;
+                    if (dx == 0 && dy == 0) return const SizedBox.shrink();
+
+                    // Dislike (Swipe Left or Down)
+                    if (dx < -20 || dy > 20 && dx.abs() < 20) {
+                      final opacity = (dx.abs() / 100).clamp(0.0, 1.0);
+                      return Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Transform.rotate(
+                            angle: 0.2,
+                            child: Opacity(
+                              opacity: opacity,
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Color(0xFFFF2A6D),
+                                size: 120,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Like (Swipe Right)
+                    if (dx > 20) {
+                      final opacity = (dx / 100).clamp(0.0, 1.0);
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Transform.rotate(
+                            angle: -0.2,
+                            child: Opacity(
+                              opacity: opacity,
+                              child: const Icon(
+                                Icons.favorite_rounded,
+                                color: Color(0xFF4DED8E),
+                                size: 120,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    // Super Like (Swipe Up)
+                    if (dy < -20 && dx.abs() < 20) {
+                      final opacity = (dy.abs() / 100).clamp(0.0, 1.0);
+                      return Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 250.0),
+                          child: Transform.rotate(
+                            angle: -0.1,
+                            child: Opacity(
+                              opacity: opacity,
+                              child: const Icon(
+                                Icons.star_rounded,
+                                color: Color(0xFF00C6FF),
+                                size: 100,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
           ],
         ),
       ),

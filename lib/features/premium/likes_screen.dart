@@ -158,25 +158,28 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
         Scaffold(
           backgroundColor: AppColors.background,
           body: SafeArea(
-            child: currentListValue.when(
-              loading: () => const LikesSkeletonLoader(),
-              error: (e, _) => Center(
-                child: Text('Error: $e',
-                    style: const TextStyle(color: AppColors.textSecondary)),
-              ),
-              data: (usersList) {
-                return CustomScrollView(
-                  slivers: [
-                    // ── Header ──────────────────────────────────────
-                    SliverToBoxAdapter(
-                      child: _Header(
-                        isPremium: isPremium,
-                        receivedCount: receivedCount,
-                        selectedIndex: _selectedTabIndex,
-                        onTabChanged: (idx) =>
-                            setState(() => _selectedTabIndex = idx),
-                      ).animate().fadeIn(duration: 200.ms),
+            child: Column(
+              children: [
+                // ── Header stays visible at all times ──
+                _Header(
+                  isPremium: isPremium,
+                  receivedCount: receivedCount,
+                  selectedIndex: _selectedTabIndex,
+                  onTabChanged: (idx) =>
+                      setState(() => _selectedTabIndex = idx),
+                ),
+                Expanded(
+                  child: currentListValue.when(
+                    loading: () => const LikesSkeletonLoader()
+                        .animate(delay: 150.ms)
+                        .fadeIn(duration: 250.ms),
+                    error: (e, _) => Center(
+                      child: Text('Error: $e',
+                          style: const TextStyle(color: AppColors.textSecondary)),
                     ),
+                    data: (usersList) {
+                      return CustomScrollView(
+                        slivers: [
 
                     if (usersList.isEmpty)
                       SliverFillRemaining(
@@ -228,9 +231,12 @@ class _LikesScreenState extends ConsumerState<LikesScreen> {
                         ),
                       ),
                     ],
-                  ],
-                );
-              },
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -581,69 +587,7 @@ class _LikeCard extends StatelessWidget {
   }
 }
 
-// ── Upgrade banner ────────────────────────────────────────────────────────────
-
-class _UpgradeBanner extends StatelessWidget {
-  const _UpgradeBanner({required this.count});
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/premium'),
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1C1430), Color(0xFF0F2A50)],
-          ),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.workspace_premium_rounded,
-                color: Color(0xFFFFD700), size: 26),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$count ${count == 1 ? 'person' : 'people'} liked you!',
-                    style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14),
-                  ),
-                  Text('Upgrade to see & respond to them',
-                      style: GoogleFonts.inter(
-                          color: Colors.white54, fontSize: 11)),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text('Unlock',
-                  style: GoogleFonts.inter(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12)),
-            ),
-          ],
-        ),
-      ).animate().fadeIn(duration: 350.ms),
-    );
-  }
-}
-
-// ── Empty state ───────────────────────────────────────────────────────────────
+// Removed _UpgradeBanner as it is unused
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.isPremium, this.tabIndex = 0});

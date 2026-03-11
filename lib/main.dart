@@ -9,6 +9,7 @@ import 'app.dart';
 import 'core/router/app_router.dart';
 import 'firebase_options.dart';
 import 'providers/service_providers.dart';
+import 'services/seed_demo_users.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await seedDemoUsers();
 
   final container = ProviderContainer();
   final notificationService = container.read(notificationServiceProvider);

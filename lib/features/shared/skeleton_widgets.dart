@@ -129,26 +129,7 @@ class LikesSkeletonLoader extends StatelessWidget {
     return CustomScrollView(
       physics: const NeverScrollableScrollPhysics(),
       slivers: [
-        // Header skeleton
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ShimmerBox(width: 140, height: 28, borderRadius: 8),
-                    SizedBox(height: 6),
-                    ShimmerBox(width: 100, height: 14, borderRadius: 6),
-                  ],
-                ),
-                Spacer(),
-                ShimmerBox(width: 80, height: 32, borderRadius: 20),
-              ],
-            ),
-          ),
-        ),
+        // Removed Header skeleton as Header is now persistent outside of the scroll view
         // Grid skeleton
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 124),

@@ -11,6 +11,7 @@ import '../../models/message.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/discovery_provider.dart';
 import '../../providers/service_providers.dart';
+import '../discovery/user_detail_screen.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({
@@ -18,11 +19,13 @@ class ChatScreen extends ConsumerStatefulWidget {
     required this.matchId,
     required this.otherUserName,
     required this.otherUserPhotoUrl,
+    required this.otherUserId,
   });
 
   final String matchId;
   final String otherUserName;
   final String otherUserPhotoUrl;
+  final String otherUserId;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -195,32 +198,54 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Avatar + name centered
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 17,
-                    backgroundColor: AppColors.surfaceVariant,
-                    backgroundImage: widget.otherUserPhotoUrl.isNotEmpty
-                        ? CachedNetworkImageProvider(widget.otherUserPhotoUrl)
-                        : null,
-                    child: widget.otherUserPhotoUrl.isEmpty
-                        ? const Icon(Icons.person_rounded,
-                            color: AppColors.textHint, size: 17)
-                        : null,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.otherUserName,
-                    style: GoogleFonts.inter(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
+              // Avatar + name centered (clickable)
+              GestureDetector(
+                onTap: () async {
+                  if (widget.otherUserId.isEmpty) return;
+                  
+                  // Optimistically show loading maybe, but the fetch is usually fast enough
+                  final user = await ref.read(firestoreServiceProvider).getUser(widget.otherUserId);
+                  if (user != null && mounted) {
+                    Navigator.of(context, rootNavigator: true).push(
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => UserDetailScreen(user: user),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(0.0, 1.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeOutCubic;
+                          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                          return SlideTransition(position: animation.drive(tween), child: child);
+                        },
+                      ),
+                    );
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 17,
+                      backgroundColor: AppColors.surfaceVariant,
+                      backgroundImage: widget.otherUserPhotoUrl.isNotEmpty
+                          ? CachedNetworkImageProvider(widget.otherUserPhotoUrl)
+                          : null,
+                      child: widget.otherUserPhotoUrl.isEmpty
+                          ? const Icon(Icons.person_rounded,
+                              color: AppColors.textHint, size: 17)
+                          : null,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.otherUserName,
+                      style: GoogleFonts.inter(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               // Back button on the left
               Positioned(
