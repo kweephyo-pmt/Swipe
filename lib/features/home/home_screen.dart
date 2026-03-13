@@ -126,8 +126,6 @@ class _BottomNav extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: const Color(0xFF1E1E2C), width: 2),
                         ),
                         child: Text(
                           likesCount > 99 ? '99+' : '$likesCount',

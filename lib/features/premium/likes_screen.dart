@@ -367,14 +367,44 @@ class _Header extends ConsumerWidget {
                       ),
                     ),
                     alignment: Alignment.center,
-                    child: Text(
-                      '$receivedCount Likes',
-                      style: TextStyle(
-                        color:
-                            selectedIndex == 0 ? Colors.white : Colors.white54,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Likes',
+                          style: TextStyle(
+                            color: selectedIndex == 0
+                                ? Colors.white
+                                : Colors.white54,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        if (receivedCount > 0) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: selectedIndex == 0
+                                  ? Colors.white
+                                  : Colors.white24,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '$receivedCount',
+                              style: TextStyle(
+                                color: selectedIndex == 0
+                                    ? Colors.black
+                                    : Colors.white70,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
@@ -596,80 +626,118 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final (icon, title, subtitle) = switch (tabIndex) {
+      1 => (
+          Icons.favorite_border_rounded,
+          'No sent likes',
+          'Users you like will appear here'
+        ),
+      2 => (
+          Icons.auto_awesome_rounded,
+          'No top picks today',
+          'Check back later for curated picks'
+        ),
+      _ => (
+          Icons.favorite_border_rounded,
+          'No likes yet',
+          'Keep swiping — your likes\nwill show up here'
+        ),
+    };
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Icon
             Container(
-              width: 96,
-              height: 96,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(24),
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primary.withOpacity(0.22),
+                    AppColors.primary.withOpacity(0.04),
+                  ],
+                ),
+                shape: BoxShape.circle,
                 border: Border.all(
-                    color: AppColors.primary.withOpacity(0.25), width: 1.5),
+                    color: AppColors.primary.withOpacity(0.2), width: 1.5),
               ),
-              child: const Icon(Icons.favorite_border_rounded,
-                  color: AppColors.primary, size: 48),
-            ).animate().scale(curve: Curves.easeOutCubic, duration: 600.ms),
-            const SizedBox(height: 24),
+              child: Icon(icon, color: AppColors.primary, size: 40),
+            )
+                .animate()
+                .scale(begin: const Offset(0.7, 0.7), curve: Curves.easeOutBack, duration: 550.ms)
+                .fadeIn(duration: 350.ms),
+            const SizedBox(height: 20),
+
+            // Title
             Text(
-                tabIndex == 0
-                    ? 'No likes yet'
-                    : tabIndex == 1
-                        ? 'No sent likes'
-                        : 'No top picks today',
-                style: GoogleFonts.inter(
-                    color: AppColors.textPrimary,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Text(
-              tabIndex == 0
-                  ? 'Keep swiping — your likes\nwill show up here ✨'
-                  : tabIndex == 1
-                      ? "Users you like will appear here"
-                      : "Check back later for more picks",
+              title,
               style: GoogleFonts.inter(
-                  color: AppColors.textSecondary, fontSize: 14),
+                color: AppColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
+            ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.15),
+            const SizedBox(height: 8),
+
+            // Subtitle
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
               textAlign: TextAlign.center,
-            ),
-            if (!isPremium) ...[
-              const SizedBox(height: 28),
+            ).animate().fadeIn(delay: 150.ms),
+
+            // Upgrade button (free users, Likes tab only)
+            if (!isPremium && tabIndex == 0) ...[
+              const SizedBox(height: 32),
               GestureDetector(
                 onTap: () => context.push('/premium'),
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 28, vertical: 15),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                        colors: [Color(0xFFFFD700), Color(0xFFFFB347)]),
-                    borderRadius: BorderRadius.circular(30),
+                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFFD700).withOpacity(0.3),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
+                        color: const Color(0xFFFFD700).withOpacity(0.35),
+                        blurRadius: 20,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.workspace_premium_rounded,
+                      const Icon(Icons.lock_open_rounded,
                           color: Colors.black, size: 18),
                       const SizedBox(width: 8),
-                      Text('Upgrade to Gold',
-                          style: GoogleFonts.inter(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 15)),
+                      Text(
+                        'See who likes you',
+                        style: GoogleFonts.inter(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2),
+              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
             ],
           ],
         ),

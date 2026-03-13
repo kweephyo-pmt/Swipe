@@ -303,13 +303,6 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
             child: const Icon(Icons.tune_rounded,
                 color: AppColors.textPrimary, size: 26),
           ),
-          const Spacer(),
-          // Right: Lightning
-          GestureDetector(
-            onTap: () {},
-            child: const Icon(Icons.flash_on_rounded,
-                color: Color(0xFFA334FA), size: 28),
-          ),
         ],
       ),
     ).animate().fadeIn(duration: 200.ms);

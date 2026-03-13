@@ -56,23 +56,6 @@ class ConversationsScreen extends ConsumerWidget {
                           fontSize: 24,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceVariant,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.shield_rounded,
-                                color: Colors.white, size: 20),
-                            SizedBox(width: 16),
-                            Icon(Icons.tune_rounded,
-                                color: Colors.white, size: 20),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),

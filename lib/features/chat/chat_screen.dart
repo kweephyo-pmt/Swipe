@@ -188,7 +188,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(70),
+      preferredSize: const Size.fromHeight(80),
       child: Container(
         decoration: const BoxDecoration(
           color: AppColors.background,
@@ -225,14 +225,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircleAvatar(
-                      radius: 17,
+                      radius: 24,
                       backgroundColor: AppColors.surfaceVariant,
                       backgroundImage: widget.otherUserPhotoUrl.isNotEmpty
                           ? CachedNetworkImageProvider(widget.otherUserPhotoUrl)
                           : null,
                       child: widget.otherUserPhotoUrl.isEmpty
                           ? const Icon(Icons.person_rounded,
-                              color: AppColors.textHint, size: 17)
+                              color: AppColors.textHint, size: 22)
                           : null,
                     ),
                     const SizedBox(height: 4),
@@ -240,8 +240,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                       widget.otherUserName,
                       style: GoogleFonts.inter(
                         color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -604,19 +604,19 @@ class _MessageBubble extends StatelessWidget {
               if (!isMe) ...[
                 if (showAvatar)
                   CircleAvatar(
-                    radius: 14,
+                    radius: 16,
                     backgroundColor: AppColors.surfaceVariant,
                     backgroundImage: photoUrl.isNotEmpty
                         ? CachedNetworkImageProvider(photoUrl)
                         : null,
                     child: photoUrl.isEmpty
                         ? const Icon(Icons.person_rounded,
-                            color: AppColors.textHint, size: 14)
+                            color: AppColors.textHint, size: 16)
                         : null,
                   )
                 else
-                  const SizedBox(width: 28),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 32),
+                const SizedBox(width: 8),
               ],
 
               // Bubble

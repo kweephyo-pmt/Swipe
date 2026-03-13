@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -75,7 +76,10 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                 if (!widget.isPreview)
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.of(context).pop();
+                    },
                     child: Container(
                       width: 40,
                       height: 40,
@@ -108,6 +112,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                       // ── Photo ──────────────────────────────────
                       GestureDetector(
                         onTapUp: (d) {
+                          HapticFeedback.lightImpact();
                           final half = MediaQuery.of(context).size.width / 2;
                           setState(() {
                             if (d.globalPosition.dx < half) {
@@ -297,6 +302,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                           // Pass
                           _ActionBtn(
                             onTap: () {
+                              HapticFeedback.lightImpact();
                               Navigator.pop(context);
                               widget.onPass!();
                             },
@@ -310,6 +316,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                           if (widget.onSuperLike != null)
                             _ActionBtn(
                               onTap: () {
+                                HapticFeedback.mediumImpact();
                                 Navigator.pop(context);
                                 widget.onSuperLike!();
                               },
@@ -322,6 +329,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
                           // Like
                           _ActionBtn(
                             onTap: () {
+                              HapticFeedback.lightImpact();
                               Navigator.pop(context);
                               widget.onLike!();
                             },
