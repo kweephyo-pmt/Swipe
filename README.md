@@ -4,6 +4,7 @@ A full-featured dating app with a premium, sleek dark-mode UI inspired by the be
 
 ## 📱 Demo
 Click to Play the Demo
+
 [![Watch the demo](https://img.youtube.com/vi/SVghHDoZAv4/maxresdefault.jpg)](https://youtu.be/SVghHDoZAv4)
 
 ## ✨ Key Features
