@@ -4,10 +4,7 @@ A full-featured dating app with a premium, sleek dark-mode UI inspired by the be
 
 ## 📱 Demo
 
-<video width="300" controls>
-  <source src="Demo.mov" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+[![Watch the demo](https://img.youtube.com/vi/SVghHDoZAv4/maxresdefault.jpg)](https://youtu.be/SVghHDoZAv4)
 
 ## ✨ Key Features
 - **Sleek Aesthetic**: Fully custom glassmorphic bottom navigation, gorgeous gradient buttons, custom SVG icons, and a premium dark mode design.
