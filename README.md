@@ -4,7 +4,10 @@ A full-featured dating app with a premium, sleek dark-mode UI inspired by the be
 
 ## 📱 Demo
 
-<video src="Demo.mov" controls="controls" width="300"></video>
+<video width="300" controls>
+  <source src="Demo.mov" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## ✨ Key Features
 - **Sleek Aesthetic**: Fully custom glassmorphic bottom navigation, gorgeous gradient buttons, custom SVG icons, and a premium dark mode design.
@@ -22,9 +25,7 @@ A full-featured dating app with a premium, sleek dark-mode UI inspired by the be
 Since sensitive keys are `.gitignore`'d, you must supply your own Firebase configuration:
 1. Go to [console.firebase.google.com](https://console.firebase.google.com/)
 2. Create a project and enable **Authentication** (Email/Password) & **Cloud Firestore**
-3. Register your Android app `com.swipeapp.swipe` → Download `google-services.json` → Place in `android/app/`
-4. Register your iOS app `com.swipeapp.swipe` → Download `GoogleService-Info.plist` → Place in `ios/Runner/`
-5. Generate `lib/firebase_options.dart` using the Flutterfire CLI.
+3. Generate `lib/firebase_options.dart` using the Flutterfire CLI.
 
 ### 2. Cloudinary Setup (For Image Uploads)
 1. Create a free account at [cloudinary.com](https://cloudinary.com)
@@ -50,21 +51,36 @@ Built cleanly using **Riverpod** for robust state management and **GoRouter** fo
 
 ```
 lib/
-├── main.dart               # Entry point
-├── app.dart                # MaterialApp + AppRouter
+├── main.dart                   # Entry point, Firebase init, splash handling
+├── app.dart                    # MaterialApp + GoRouter bootstrap
+├── firebase_options.dart        # Auto-generated FlutterFire config
+│
 ├── core/
-│   ├── theme/              # Custom AppTheme, AppColors, and typography
-│   └── router/             # GoRouter configuration
-├── models/                 # AppUser, Match, Message
-├── services/               # AuthService, FirestoreService, CloudinaryService
-├── providers/              # Global Riverpod state providers
+│   ├── constants/              # AppConstants (Cloudinary keys, etc.)
+│   ├── theme/                  # AppTheme, AppColors, text styles
+│   └── router/                 # GoRouter config & auth redirect guards
+│
+├── models/                     # AppUser, Match, Message data models
+│
+├── services/
+│   ├── auth_service.dart        # Firebase Auth (email + Google Sign-In)
+│   ├── firestore_service.dart   # All Firestore reads/writes
+│   ├── cloudinary_service.dart  # Image upload via Cloudinary REST API
+│   └── notification_service.dart# FCM + local notifications
+│
+├── providers/                   # Global Riverpod providers
+│
 └── features/
-    ├── auth/               # Beautiful full-screen login / registration
-    ├── discovery/          # The main swipe card stack & User Details view
-    ├── premium/            # Subscription paywalls & "Likes You" grids
-    ├── matches/            # Grid of mutual matches
-    ├── chat/               # Live Messaging interfaces
-    └── profile/            # Advanced profile editing with dynamic pickers
+    ├── splash/                  # Animated splash / auth gate
+    ├── auth/                    # Login & registration screens
+    ├── onboarding/              # Multi-step profile setup flow
+    ├── home/                    # Shell scaffold & bottom nav
+    ├── discovery/               # Swipe card stack & user detail view
+    ├── matches/                 # Mutual matches grid
+    ├── chat/                    # Real-time messaging interface
+    ├── premium/                 # Paywall & "Likes You" grid
+    ├── profile/                 # Profile editor with tabs & pickers
+    └── shared/                  # Reusable widgets (cards, chips, etc.)
 ```
 
 ---
